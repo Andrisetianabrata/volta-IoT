@@ -33,8 +33,28 @@ static void publish() {
 
 VoltaTask pubTask(publish, 5000, "publish");
 
+static void report() {
+  Serial.print(F("[net] "));
+  Serial.print(VoltaDevice::wifiStatusText());
+  Serial.print(F(" rssi="));
+  Serial.print(dev.rssi());
+  Serial.print(F(" mqtt="));
+  Serial.print(dev.mqttConnected() ? F("up") : F("down"));
+  Serial.print(F(" up="));
+  Serial.println(millis() / 1000);
+}
+
+VoltaTask reportTask(report, 5000, "report");
+
 void setup() {
   Serial.begin(115200);
+  Serial.println(F("\nVOLTA. device"));
+  Serial.print(F("id="));
+  Serial.println(DEVICE_ID);
+  Serial.print(F("ssid="));
+  Serial.println(WIFI_SSID);
+  Serial.print(F("broker="));
+  Serial.println(MQTT_HOST);
   led.begin();
   temp.begin();
   dev.setWifi(WIFI_SSID, WIFI_PASS);
@@ -45,4 +65,5 @@ void setup() {
 void loop() {
   dev.update();
   pubTask.update();
+  reportTask.update();
 }

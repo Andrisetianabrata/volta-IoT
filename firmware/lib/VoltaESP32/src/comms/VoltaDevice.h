@@ -25,15 +25,32 @@ class VoltaDevice {
 
   void begin() {
     WiFi.mode(WIFI_STA);
+    WiFi.setSleep(false);
     WiFi.begin(ssid_, pass_);
     mqtt_.setIdentity(id_, token_, token_, statusTopic_, "offline");
     mqtt_.setHandler(onMqttStatic);
     s_instance = this;
     mqtt_.begin();
+    lastStatus_ = WiFi.status();
+    lastChange_ = millis();
   }
 
   void update() {
-    if (WiFi.status() != WL_CONNECTED) return;
+    unsigned long now = millis();
+    wl_status_t st = WiFi.status();
+    if (st != WL_CONNECTED) {
+      if (st != lastStatus_) {
+        lastStatus_ = st;
+        lastChange_ = now;
+      } else if (now - lastChange_ > 20000UL) {
+        WiFi.disconnect();
+        WiFi.begin(ssid_, pass_);
+        lastChange_ = now;
+      }
+      return;
+    }
+    lastStatus_ = st;
+    lastChange_ = now;
     bool was = mqtt_.connected();
     mqtt_.update();
     if (!was && mqtt_.connected()) {
@@ -43,6 +60,21 @@ class VoltaDevice {
   }
 
   bool online() const { return WiFi.status() == WL_CONNECTED; }
+  bool mqttConnected() { return mqtt_.connected(); }
+  long rssi() { return WiFi.status() == WL_CONNECTED ? WiFi.RSSI() : 0; }
+
+  static const char* wifiStatusText() {
+    switch (WiFi.status()) {
+      case WL_IDLE_STATUS: return "IDLE";
+      case WL_NO_SSID_AVAIL: return "NO_SSID";
+      case WL_SCAN_COMPLETED: return "SCAN_DONE";
+      case WL_CONNECTED: return "CONNECTED";
+      case WL_CONNECT_FAILED: return "CONNECT_FAILED";
+      case WL_CONNECTION_LOST: return "LOST";
+      case WL_DISCONNECTED: return "DISCONNECTED";
+      default: return "?";
+    }
+  }
 
   bool publishState(const char* pin, const char* value) {
     char topic[64];
@@ -92,6 +124,8 @@ class VoltaDevice {
   char statusTopic_[64];
   char cmdTopic_[64];
   char logTopic_[64];
+  wl_status_t lastStatus_ = WL_IDLE_STATUS;
+  unsigned long lastChange_ = 0;
 };
 
 inline VoltaDevice* VoltaDevice::s_instance = nullptr;
