@@ -1,23 +1,8 @@
 use std::sync::Arc;
 
+use blynk_rs::{cli::Args, config::AppConfig, http, mailer, rule, storage};
 use clap::Parser;
 use tracing_subscriber::{EnvFilter, prelude::*};
-
-mod acme;
-mod auth;
-mod broker;
-mod cli;
-mod config;
-mod http;
-mod mailer;
-mod ota;
-mod pins;
-mod rule;
-mod stats;
-mod storage;
-
-use cli::Args;
-use config::AppConfig;
 
 fn init_tracing(data_folder: &std::path::Path, log_level: &str) {
     let filter = EnvFilter::try_from_default_env()

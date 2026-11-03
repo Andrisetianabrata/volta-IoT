@@ -9,6 +9,10 @@ license = "MIT"
 name = "blynk-rs"
 path = "src/main.rs"
 
+[lib]
+name = "blynk_rs"
+path = "src/lib.rs"
+
 [dependencies]
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "fs", "time", "sync"] }
 clap = { version = "4", features = ["derive"] }

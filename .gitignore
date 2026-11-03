@@ -1,5 +1,9 @@
-/target
-/data
+target/
+data/
 *.log
 logs/
 .env
+.agents/
+.opencode/
+blynk-rs/target/
+blynk-rs/data/
