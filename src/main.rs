@@ -60,7 +60,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         https = config.http.https_port,
         "volta starting"
     );
-    let listener = tokio::net::TcpListener::bind(&addr).await?;
+    let listener = tokio::net::TcpListener::bind(&addr)
+        .await
+        .map_err(|e| format!("cannot bind {addr}: {e} (port dipakai? ubah [http] https_port di server.toml)"))?;
     axum::serve(listener, app).await?;
     Ok(())
 }
