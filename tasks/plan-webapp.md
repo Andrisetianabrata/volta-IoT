@@ -272,21 +272,63 @@ status dari respons, konfirmasi sebelum mulai.
 
 **Estimated scope:** XS (1 file)
 
-#### Task W10 (opsional, bisa tunda): Dashboard & widget API
-**Description:** CRUD dashboard + widget memakai endpoint server yang ada.
-Ditandai opsional: inti monitoring tidak membutuhkannya.
+#### Task W10: Dashboard dinamis ala no-code engine
+**Description:** Render dashboard murni dari definisi server
+(`GET /dashboards`, `GET /dashboards/{id}/widgets` → `{id, kind, pin,
+config}`), tanpa redeploy saat layout berubah. Registry widget:
+satu file per kind (`widgets/gauge.tsx`, `button.tsx`, `switch.tsx`,
+`slider.tsx`, `labeled-value.tsx`, `led.tsx`, `history-chart.tsx`) +
+manifest (nama, skema config, ukuran default). Posisi/ukuran dibaca dari
+`config` (`{x, y, w, h, label, min, max, unit}`); grid 12 kolom.
+Binding live reuse hook WS Fase 1. Jujur seperti Blynk: *layout dan isi*
+berubah tanpa rilis ulang; *jenis widget baru* tetap butuh kode klien.
 
 **Acceptance criteria:**
-- [ ] Ikut gate visual yang sama bila dikerjakan
+- [ ] Tambah/hapus/pindah widget via API langsung tercermin tanpa rebuild
+- [ ] Kind tak dikenal tampil sebagai kartu "kind belum didukung", bukan crash
+- [ ] Live binding dan kirim perintah jalan untuk semua kind interaktif
 
-**Verification:** sama seperti task lain bila dikerjakan
+**Verification:**
+- [ ] Playwright: buat dashboard via API mentah, buka webapp, semua widget tampil + live
+- [ ] Manual: ubah `config` widget di DB, refresh, layout ikut berubah
 
-**Dependencies:** W2
+**Dependencies:** W4, W5, W6
 
-**Estimated scope:** M bila dikerjakan
+**Files likely touched:**
+- `webapp/components/widgets/*.tsx`
+- `webapp/lib/widget-registry.ts`
+- `webapp/app/(shell)/dashboards/[id]/page.tsx`
+
+**Estimated scope:** M (registry + 7 renderer + halaman)
+
+#### Task W11: Widget HTML kustom (sandbox)
+**Description:** Widget kind `html` berisi `{html, css?, js?}` yang
+dirender dalam `<iframe sandbox="allow-scripts" srcDoc=...>` tanpa
+`allow-same-origin`: terisolasi, tak bisa menyentuh DOM/storage induk.
+Jembatan `postMessage` dua arah yang sempit: widget → induk hanya
+`{type:"cmd", pin, value}` (induk yang validasi + teruskan via PUT);
+induk → widget `{type:"pin", pin, value}` tiap update. Batas ukuran
+64 KB per field (cek klien; cap server menyusul bila perlu).
+
+**Acceptance criteria:**
+- [ ] Contoh denah/unit test: HTML kustom bisa baca pin dan kirim perintah
+- [ ] JS widget tidak bisa akses `parent`, cookie, atau localStorage induk
+- [ ] Melebihi 64 KB ditolak dengan pesan jelas sebelum tersimpan
+
+**Verification:**
+- [ ] Playwright: suntik `parent.document` dari widget → harus gagal terisolasi
+- [ ] Manual: pasang contoh denah denah + tombol dari HTML murni
+
+**Dependencies:** W10 (butuh registry + binding)
+
+**Files likely touched:**
+- `webapp/components/widgets/html-widget.tsx`
+- `webapp/lib/widget-bridge.ts` (protokol postMessage)
+
+**Estimated scope:** S (2 file + contoh)
 
 ### Checkpoint C — Selesai
-- [ ] Semua acceptance criteria W1–W9 (W10 bila diambil) terpenuhi
+- [ ] Semua acceptance criteria W1–W11 terpenuhi
 - [ ] Gate visual: `lint.mjs --app` 0 FAIL, `inspect.mjs --app` 0 FAIL di 1440/768/390, kritik 3 ronde tercatat
 - [ ] Kontras teks ≥ 4.5:1 (cek tool), keyboard penuh (Tab/Enter/Escape), state empty/loading/error ada di tiap blok data
 - [ ] Tidak ada data contoh/invented di mana pun; angka lolos uji "total dari baris"
@@ -305,7 +347,7 @@ Ditandai opsional: inti monitoring tidak membutuhkannya.
 ## Open Questions
 
 - Target hosting webapp (mesin yang sama / Vercel / lain)? Menentukan `VOLTA_API_URL` + strategi build. Default rencana: env var saat build, didokumentasikan di webapp README.
-- Apakah dashboard/widget (T10) masuk v1 atau ditunda? Rekomendasi: tunda (opsional).
+- Apakah dashboard/widget masuk v1? Ya — masuk sebagai T10–T11 (keputusan: diambil setelah user meminta engine no-code + HTML widget).
 - Retensi history default grafik (1H/24H) cukup, atau perlu 7D? Butuh jawaban sebelum T6 final (default: cukup).
 
 ## Verification (global)
