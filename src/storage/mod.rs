@@ -116,6 +116,7 @@ pub trait Storage: Send + Sync + 'static {
 
     async fn issue_token(&self, token: &str, device_id: &str, now: i64) -> Result<(), sqlx::Error>;
     async fn lookup_token(&self, token: &str) -> Result<Option<DeviceToken>, sqlx::Error>;
+    async fn list_valid_tokens(&self) -> Result<Vec<String>, sqlx::Error>;
     async fn revoke_token(&self, token: &str) -> Result<(), sqlx::Error>;
 
     async fn upsert_pin(&self, device_id: &str, pin: &str, value: &str, now: i64) -> Result<(), sqlx::Error>;

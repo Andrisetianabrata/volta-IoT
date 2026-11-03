@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use volta::{cli::Args, config::AppConfig, http, logo, mailer, rule, storage};
+use volta::{broker, cli::Args, config::AppConfig, http, logo, mailer, rule, storage};
 use clap::Parser;
 use tracing_subscriber::{EnvFilter, prelude::*};
 
@@ -50,6 +50,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let rule_bus = state.bus.clone();
     let rule_cmds = state.cmds.clone();
     tokio::spawn(rule::run(rule_db, rule_bus, rule_cmds));
+
+    let bridge_db = db.clone();
+    let bridge_bus = state.bus.clone();
+    let bridge_cmds = state.cmds.clone();
+    let bridge_cache = broker::bridge::new_token_cache();
+    if let Ok(tokens) = broker::bridge::load_valid_tokens(db.as_ref()).await {
+        *bridge_cache.write().unwrap() = tokens;
+    }
+    let bridge_port = config.mqtt.local_port;
+    tokio::spawn(broker::bridge::run_bridge(
+        bridge_db,
+        bridge_bus,
+        bridge_cmds,
+        bridge_port,
+        bridge_cache,
+    ));
 
     let app = http::router(state.clone());
     let addr = format!("0.0.0.0:{}", config.http.https_port);

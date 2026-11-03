@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod bridge;
 
 use std::collections::HashMap;
 use std::sync::Arc;

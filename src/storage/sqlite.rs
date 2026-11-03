@@ -80,6 +80,10 @@ impl Storage for SqliteStorage {
     async fn revoke_token(&self, token: &str) -> Result<(), sqlx::Error> {
         sqlx::query("UPDATE device_tokens SET revoked=1 WHERE token=?").bind(token).execute(&self.pool).await.map(|_| ())
     }
+    async fn list_valid_tokens(&self) -> Result<Vec<String>, sqlx::Error> {
+        let rows: Vec<(String,)> = sqlx::query_as("SELECT token FROM device_tokens WHERE revoked=0").fetch_all(&self.pool).await?;
+        Ok(rows.into_iter().map(|r| r.0).collect())
+    }
     async fn upsert_pin(&self, device_id: &str, pin: &str, value: &str, now: i64) -> Result<(), sqlx::Error> {
         sqlx::query("INSERT INTO pin_state(device_id,pin,value,updated_at) VALUES(?,?,?,?) ON CONFLICT(device_id,pin) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at")
             .bind(device_id).bind(pin).bind(value).bind(now)
@@ -198,6 +202,18 @@ mod tests {
         assert_eq!(s.query_history("d1", "V0", 0, now + 10, 100).await.unwrap().len(), 1);
         s.set_status("d1", true, now).await.unwrap();
         assert_eq!(s.get_status("d1").await.unwrap().unwrap().online, 1);
+    }
+
+    #[tokio::test]
+    async fn valid_tokens_exclude_revoked() {
+        let s = mem().await;
+        let now = now_unix();
+        s.create_user("u1", "a@b.c", "h", now).await.unwrap();
+        s.create_device("d1", "u1", "esp", now).await.unwrap();
+        s.issue_token(&"a".repeat(32), "d1", now).await.unwrap();
+        s.issue_token(&"b".repeat(32), "d1", now).await.unwrap();
+        s.revoke_token(&"a".repeat(32)).await.unwrap();
+        assert_eq!(s.list_valid_tokens().await.unwrap(), vec!["b".repeat(32)]);
     }
 
     #[tokio::test]
