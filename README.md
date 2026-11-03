@@ -1,5 +1,7 @@
 # VOLTA.
 
+![VOLTA.](assets/logo/volta-horizontal.svg)
+
 Server IoT MQTT-only hasil pembangunan ulang dalam bahasa Rust. Hardware berbicara MQTT, server menyimpan state pin, dan aplikasi baru mengambil data lewat HTTPS REST dan WebSocket. Protokol binary TCP lama tidak dipakai.
 
 Status: implementasi Fase 1-4 selesai. Rencana lengkap ada di `tasks/plan.md`.
@@ -83,6 +85,15 @@ Email register, reset password, dan event pin berjalan melalui antrean dengan re
 ## Status proyek
 
 Rencana dipetakan di `tasks/plan.md` (Fase 1 hingga 4, 15 task, mailer wajib di Fase 1).
+
+## Logo
+
+Identitas Bit Pair (kotak solid 1/HIGH + ring 0/LOW). Master vektor di
+`assets/logo/` (`volta-horizontal.svg` primer, `volta-symbol.svg` untuk ikon).
+Aturan pakai: `assets/logo/VOLTA-guidelines.md` — zona aman 1× tinggi kotak,
+lebar minimum horizontal 96 px / simbol 16 px, palet Ink `#111111`, Copper
+`#C07A24`, Steel `#7C8288`, Paper `#F5F3EE`. CLI mencetak banner ASCII saat
+start dan `--help` menampilkan lockup teks yang sama.
 
 ## Lisensi
 
