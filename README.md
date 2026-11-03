@@ -2,7 +2,7 @@
 
 ![VOLTA.](assets/logo/volta-horizontal.svg)
 
-Server IoT MQTT-only hasil pembangunan ulang dalam bahasa Rust. Hardware berbicara MQTT, server menyimpan state pin, dan aplikasi baru mengambil data lewat HTTPS REST dan WebSocket. Protokol binary TCP lama tidak dipakai.
+Server IoT MQTT-only yang dibangun ulang dengan Rust. Perangkat keras berkomunikasi via MQTT, server menyimpan state pin, dan aplikasi mengambil data lewat HTTPS REST dan WebSocket. Protokol binary TCP lama tidak dipakai.
 
 Status: implementasi Fase 1-4 selesai. Rencana lengkap ada di `tasks/plan.md`.
 
@@ -29,28 +29,26 @@ Satu biner berisi broker MQTT, HTTP, mailer, dan storage. Tidak ada layanan terp
 | `volta/dev/{device_id}/status` | LWT saat connect | 1 | ya |
 | `volta/dev/{device_id}/log` | device ke server | 0 | tidak |
 
-Auth device berupa token 32 karakter sebagai username dan password MQTT. Token dapat direvoke dan koneksi aktif akan diputus. Satu device hanya boleh menulis state dan log miliknya sendiri, dan hanya subscribe cmd serta status miliknya.
+Autentikasi device memakai token 32 karakter sebagai username sekaligus password MQTT. Token dapat dicabut; koneksi aktif ikut diputus. Satu device hanya boleh menulis state dan log miliknya, dan hanya subscribe cmd serta status miliknya.
 
 ## Stack
 
 - **Tokio**: runtime, task per koneksi, worker antrean
-- **rumqttd**: broker MQTT embedded, dikepang lewat `LinkBuilder`
+- **rumqttd**: broker MQTT terbenam, dihubungkan lewat `LinkBuilder`
 - **Axum**: HTTP REST, WebSocket, static
-- **sqlx + SQLite**: penyimpanan, diatur WAL; adapter Postgres menyusul lewat trait `Storage`
+- **sqlx + SQLite**: penyimpanan dengan mode WAL; adaptor Postgres menyusul lewat trait `Storage`
 - **lettre**: SMTP async, STARTTLS port 587 atau smtps port 465
 - **rustls-acme**: sertifikat Let's Encrypt otomatis
 - **serde, clap, tracing**: model, CLI, log
 
 ## Guna memulai
 
-Cara menjalankan:
-
 ```sh
 cargo build --release
 ./target/release/volta --dataFolder ./data
 ```
 
-Port yang direncanakan: 8883 MQTT TLS, 1883 MQTT lokal, 9443 HTTPS app.
+Port bawaan: 8883 MQTT TLS, 1883 MQTT lokal, 9443 HTTPS app.
 
 ## Benchmark
 
@@ -81,11 +79,11 @@ max = 10000
 
 Email register, reset password, dan event pin berjalan melalui antrean dengan retry. Status mailer terlihat di `healthz`.
 
-## Peta modul yang direncanakan
+## Peta modul
 
 | Modul | Isi |
 |---|---|
-| `src/broker` | embed rumqttd, TLS, auth token, LWT |
+| `src/broker` | rumqttd terbenam, TLS, auth token, LWT |
 | `src/pins` | tap state, command bus, history |
 | `src/http` | REST auth, dashboard, device, pins, WS stream |
 | `src/mailer` | lettre transport, antrean, template |
@@ -103,13 +101,19 @@ Identitas Bit Pair (kotak solid 1/HIGH + ring 0/LOW). Master vektor di
 Aturan pakai: `assets/logo/VOLTA-guidelines.md` — zona aman 1× tinggi kotak,
 lebar minimum horizontal 96 px / simbol 16 px, palet Ink `#111111`, Copper
 `#C07A24`, Steel `#7C8288`, Paper `#F5F3EE`. CLI mencetak banner ASCII saat
-start dan `--help` menampilkan lockup teks yang sama.
+start dan `--help` menampilkan tampilan teks yang sama.
 
 ## Firmware
 
 Klien device ESP32 (Arduino + PlatformIO) di `firmware/`: library OOP
 non-blocking `VoltaESP32` dan proyek demo `platformio.ini`. Detail:
 `firmware/README.md`.
+
+## Webapp
+
+Klien web (Next.js + TSX, Tailwind, shadcn/ui) direncanakan di
+`tasks/plan-webapp.md`, checklist di `tasks/todo-webapp.md`.
+Implementasinya nanti tinggal di `webapp/`.
 
 ## Lisensi
 
