@@ -354,30 +354,42 @@ status dari respons, konfirmasi sebelum mulai.
 
 **Estimated scope:** XS (1 file)
 
-### Task W12: Editor visual dashboard
+### Task W12: Editor visual drag-and-drop + grid responsif
 
-**Description:** Ubah kanvas W10 dari read-only menjadi bisa disusun:
-palet kind widget, tambah via klik, pindah via drag dalam grid 12 kolom,
-panel properti (pin, label, min/max, warna), simpan via PUT/POST/DELETE
-yang sudah ada. Layout disimpan di `config` (`{x, y, w, h, order}`).
+**Description:** Kanvas W10 bisa disusun langsung: library
+`react-grid-layout` (`Responsive`, API terverifikasi) dengan breakpoint
+`lg/md/sm/xs/xxs` → kolom `12/10/6/4/2`. Hanya layout `lg` yang disimpan
+(`{x, y, w, h}` di `config` widget); breakpoint kecil mengalir otomatis.
+Widget mengisi sel 100% (SVG `viewBox` ikut skala, grafik yang ada
+tidak perlu diubah).
+
+Sentuh (touchscreen): tiap widget punya gagang drag khusus (area grip
+≥44 px, `touch-action: none` hanya di gagang agar kanvas tetap bisa
+di-scroll), handle resize sudut kanan-bawah ≥44 px, plus mode eksplisit
+Lihat/Ubah — mode Lihat menonaktifkan semua handle supaya tidak kegeser
+saat scroll. Panel properti (pin, label, min/max, warna), tombol Simpan
+eksplisit menulis yang berubah via PUT/POST/DELETE.
 
 **Acceptance criteria:**
-- [ ] Tambah / pindah / hapus widget tanpa sentuh API mentah
+- [ ] Drag + resize jalan di mouse dan layar sentuh (uji sentuh asli)
+- [ ] Ganti lebar viewport (desktop ↔ HP): layout mengalir tanpa overlap/hilang
 - [ ] Refresh memuat susunan yang sama (bukti persistensi)
-- [ ] Perubahan tak sengaja tidak tersimpan (tombol Simpan eksplisit per panel)
+- [ ] Mode Lihat: scroll sentuh tidak menggeser widget sama sekali
+- [ ] Perubahan tak sengaja tidak tersimpan (tombol Simpan eksplisit)
 
 **Verification:**
-- [ ] Playwright: tambah → pindah → reload → susunan sama → hapus
-- [ ] Manual: editor bisa dipakai orang non-teknis tanpa baca docs
+- [ ] Playwright + sentuh: tambah → drag → resize → reload → susunan sama → hapus
+- [ ] Manual di HP: scroll kanvas, geser widget via gagang, cubit tidak pecah
 
 **Dependencies:** W8, W10 (butuh renderer + API widget lengkap)
 
 **Files likely touched:**
 - `webapp/app/(dashboards)/[id]/edit/page.tsx` (atau mode edit di kanvas)
+- `webapp/components/canvas-grid.tsx` (wrapper `ResponsiveGridLayout`)
 - `webapp/components/widget-palette.tsx`
 - `webapp/components/widget-props.tsx`
 
-**Estimated scope:** M (3–4 file)
+**Estimated scope:** M (4 file)
 
 ### Task W13: Wajah SaaS (branding, berbagi, peran)
 

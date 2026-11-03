@@ -33,7 +33,7 @@ Task server Rust tetap di `tasks/todo.md` (selesai, jangan campur).
 - [ ] Task W9: Kontrol OTA (XS)
 - [ ] Task W10: Dashboard dinamis ala no-code engine (M)
 - [ ] Task W11: Widget HTML kustom sandbox (S)
-- [ ] Task W12: Editor visual dashboard (M)
+- [ ] Task W12: Editor visual drag-and-drop + grid responsif (M)
 - [ ] Task W13: Wajah SaaS — branding, berbagi, peran (M)
 - [ ] Task W14: Pengaturan — tema, akun, server (S)
 
