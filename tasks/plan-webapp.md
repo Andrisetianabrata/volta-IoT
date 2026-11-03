@@ -60,51 +60,46 @@ milik server Rust (selesai 100%). Task webapp hidup di file ini dan
 Catatan: nilai final dikunci saat implementasi T1 dan diverifikasi
 dengan contrast checker (teks normal ≥ 4.5:1, besar ≥ 3:1).
 
-## Struktur route
+## Struktur tab
 
-Rail (desktop) / bottom bar (mobile) berisi lima destinasi: monitor,
-devices, provision, dashboards, health. Halaman detail hanya dicapai
-dari daftar, bukan dari rail.
+Lima tab di rail (desktop) / bottom-bar (mobile): Monitor, Devices,
+Provision, Dashboards, Health. Halaman detail hanya dicapai dari daftar,
+tidak duduk di tab. Tanpa sesi semua tab mengarah ke login; device yang
+dipilih dibagikan antar tab.
 
 ```mermaid
 flowchart TD
-    subgraph PUB ["publik — tanpa sesi"]
-        LAND["/ — landing<br/>CTA: buka konsol"]
-        LOGIN["/login — masuk / daftar akun"]
+    subgraph TABS ["tab utama"]
+        MON([Monitor])
+        DEVS([Devices])
+        PROV([Provision])
+        DASH([Dashboards])
+        HEALTH([Health])
     end
-    subgraph APP ["konsol — wajib sesi (tanpa sesi → /login)"]
-        MON["/monitor — overview live (default)"]
-        DEVS["/devices — daftar + status"]
-        DET["/devices/[id] — pin, grafik, perintah"]
-        PROV["/provision — device baru, token sekali tampil"]
-        HEALTH["/health — broker, db, mailer, statistik"]
-        DLIST["/dashboards — daftar"]
-        DCANV["/dashboards/[id] — kanvas dinamis T10"]
-    end
-    API["/api/* — BFF proxy + /api/ws-token (bukan halaman)"]
-    LAND --> LOGIN
-    LAND -.->|"sudah login"| MON
-    LOGIN -->|"sesi valid"| MON
-    MON --- DEVS
-    DEVS --- DET
-    MON --- PROV
-    MON --- HEALTH
-    MON --- DLIST
-    DLIST --- DCANV
+    PINS[Pin live + grafik + event + kirim perintah]
+    DET[Detail satu device]
+    FORM[Form device baru + token sekali tampil]
+    KANVAS[Kanvas dinamis dari definisi server]
+    STAT[Strip + rincian kesehatan server]
+    MON --- PINS
+    MON --- STAT
+    DEVS -->|"pilih"| DET
+    DET -.->|"kembali"| DEVS
+    PROV --> FORM
+    FORM -->|"device baru muncul di"| DEVS
+    FORM -->|"langsung pantau"| MON
+    DASH --- KANVAS
+    HEALTH --- STAT
 ```
 
-| Route | Guard | Dibangun di | Isi |
-|---|---|---|---|
-| `/` | publik; redirect ke `/monitor` bila ada sesi | W1 | Judul, satu kalimat produk, satu CTA "Buka konsol" |
-| `/login` | publik; sudah login → `/monitor` | W2 | Form email+password, "Masuk" primer, "Buat akun" sekunder, error teks |
-| `/monitor` | sesi | W3–W6 | Strip kesehatan, pin live, grafik history, feed event, kirim perintah |
-| `/devices` | sesi | W4 | Daftar + pill online/offline jujur, empty state |
-| `/devices/[id]` | sesi | W8 | Ulang pakai blok Fase 1 untuk satu device |
-| `/provision` | sesi | W7 | Form buat device, token sekali tampil + salin, tabel + hapus 2 tahap |
-| `/health` | sesi | W3 | Baris kunci-nilai dari `/healthz` + `/admin/stats` |
-| `/dashboards` | sesi | W10 | Daftar dashboard, masuk ke kanvas |
-| `/dashboards/[id]` | sesi | W10 | Renderer dinamis dari definisi server |
-| `/api/*` | sesi diteruskan via cookie | W2 | BFF proxy ke `VOLTA_API_URL`, bukan halaman |
+| Tab | Berisi | Terhubung ke |
+|---|---|---|
+| Monitor | Pin live, grafik history, feed event, kirim perintah, strip kesehatan | Devices (ganti device pantauan); Provision (tambah device bila kosong) |
+| Devices | Daftar + status online/offline jujur | Detail device (dipilih); Provision (bila kosong) |
+| Detail device | Pin, grafik, perintah, status, hapus (dicapai dari daftar) | Kembali ke Devices |
+| Provision | Form buat device, token sekali tampil + salin, tabel + hapus 2 tahap | Device baru langsung bisa dipilih di Monitor dan Devices |
+| Dashboards | Daftar dashboard | Kanvas dinamis (T10) per dashboard |
+| Health | Broker, db, mailer, statistik (sumber sama dengan strip Monitor) | Strip di Monitor memakai sumber data yang sama |
 
 ## Task List
 
