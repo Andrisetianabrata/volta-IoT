@@ -53,12 +53,15 @@ milik server Rust (selesai 100%). Task webapp hidup di file ini dan
 | `--raised` | `#1F1F23` | `#EDEAE3` |
 | `--border` / `--rule` | `#2B2B2E` / `#1C1C1F` | `#E3DED4` / `#EFEBE2` |
 | `--text` / `--muted` | `#F5F3EE` / `#A8A8AB` | `#111111` / `#5F6368` |
-| `--accent` | `#C07A24` | `#A3651B` (kontras teks 4.5:1) |
+| `--accent` | `#C07A24` | `#8A5A1B` (turunan teks agar kontras ≥ 4.5:1; grafis tetap Copper murni) |
 | `--positive` / bg | `#3FC07A` / `#172A1D` | `#247B50` / `#DCFAE5` |
 | `--negative` / bg | `#E5566F` / `#2C1A20` | `#C4242A` / `#FFEBE9` |
 
 Catatan: nilai final dikunci saat implementasi T1 dan diverifikasi
 dengan contrast checker (teks normal ≥ 4.5:1, besar ≥ 3:1).
+Sumber arah visual yang mengikat: `DESIGN.md` di root repo
+(palet, tipografi, radius, gerak, library, aturan anti-konflik CSS);
+tabel di sini ringkasannya.
 
 ## Struktur tab & live-wiring
 
