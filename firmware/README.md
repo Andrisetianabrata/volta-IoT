@@ -8,7 +8,7 @@ Dua isi: library Arduino `VoltaESP32` dan proyek PlatformIO yang memakainya.
 |---|---|
 | `lib/VoltaESP32/` | Library: header `src/`, contoh IDE `examples/`, `library.json` + `library.properties` |
 | `src/main.cpp` | Aplikasi demo PlatformIO (device MQTT penuh) |
-| `platformio.ini` | Env `esp32dev`, Arduino, PubSubClient + ArduinoJson |
+| `platformio.ini` | Env `esp32doit-devkit-v1` @ 240 MHz, Arduino, PubSubClient + ArduinoJson |
 | `test/host/` | Uji logika murni via g++, tanpa hardware |
 | `tools/pins.json` | Skema pin contoh, lolos validator |
 | `docs/WIRING.md` | Tabel pengkabelan ringkas |
