@@ -1,0 +1,37 @@
+[package]
+name = "blynk-rs"
+version = "0.1.0"
+edition = "2021"
+description = "Blynk Legacy rebuilt as MQTT-only server in Rust"
+license = "MIT"
+
+[[bin]]
+name = "blynk-rs"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "fs", "time", "sync"] }
+clap = { version = "4", features = ["derive"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-appender = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+thiserror = "2"
+sqlx = { version = "0.8", features = ["sqlite", "runtime-tokio", "migrate", "macros", "chrono"] }
+rand = "0.8"
+sha2 = "0.10"
+hex = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
+lettre = { version = "0.11", features = ["builder", "smtp-transport", "tokio1", "tokio1-native-tls", "hostname"] }
+axum = { version = "0.7", features = ["ws"] }
+tower = { version = "0.5", features = ["util"] }
+futures = "0.3"
+rumqttd = "0.19"
+uuid = { version = "1", features = ["v4", "serde"] }
+
+[dev-dependencies]
+tempfile = "3"
+axum-test = "16"
+tokio-test = "0.4"
