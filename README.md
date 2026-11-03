@@ -105,6 +105,12 @@ lebar minimum horizontal 96 px / simbol 16 px, palet Ink `#111111`, Copper
 `#C07A24`, Steel `#7C8288`, Paper `#F5F3EE`. CLI mencetak banner ASCII saat
 start dan `--help` menampilkan lockup teks yang sama.
 
+## Firmware
+
+Klien device ESP32 (Arduino + PlatformIO) di `firmware/`: library OOP
+non-blocking `VoltaESP32` dan proyek demo `platformio.ini`. Detail:
+`firmware/README.md`.
+
 ## Lisensi
 
 MIT sesuai upstream, menyesuaikan setelah rilis.

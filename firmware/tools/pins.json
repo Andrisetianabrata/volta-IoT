@@ -1,0 +1,12 @@
+{
+  "platform": "esp32",
+  "variant": "esp32",
+  "module": "WROOM",
+  "wifi_enabled": true,
+  "pins": [
+    {"gpio": 2, "function": "LED", "protocol_bus": "gpio", "device": "status LED", "direction": "output"},
+    {"gpio": 32, "function": "TEMP_ADC", "protocol_bus": "adc", "device": "sensor suhu analog", "direction": "input"},
+    {"gpio": 21, "function": "I2C_SDA", "protocol_bus": "i2c", "device": "bus sensor", "direction": "inout", "pull": "external_up", "speed_hz": 100000},
+    {"gpio": 22, "function": "I2C_SCL", "protocol_bus": "i2c", "device": "bus sensor", "direction": "inout", "pull": "external_up", "speed_hz": 100000}
+  ]
+}
