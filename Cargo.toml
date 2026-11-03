@@ -1,16 +1,16 @@
 [package]
-name = "blynk-rs"
+name = "volta"
 version = "0.1.0"
 edition = "2021"
-description = "Blynk Legacy rebuilt as MQTT-only server in Rust"
+description = "VOLTA. MQTT-only IoT server in Rust"
 license = "MIT"
 
 [[bin]]
-name = "blynk-rs"
+name = "volta"
 path = "src/main.rs"
 
 [lib]
-name = "blynk_rs"
+name = "volta"
 path = "src/lib.rs"
 
 [dependencies]

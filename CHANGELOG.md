@@ -1,4 +1,4 @@
-# Blynk RS 0.1.0
+# VOLTA. 0.1.0
 
 ## Added
 - Task 1: scaffolding crate, config TOML, CLI `--data-folder`/`--dataFolder`, tracing stdout+file

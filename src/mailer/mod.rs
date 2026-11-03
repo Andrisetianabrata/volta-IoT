@@ -28,7 +28,7 @@ impl Default for MailerConfig {
             tls: "starttls".into(),
             username: String::new(),
             password: String::new(),
-            from: "\"Blynk RS\" <no-reply@localhost>".into(),
+            from: "\"VOLTA.\" <no-reply@localhost>".into(),
             max_queue: 10000,
         }
     }
@@ -142,8 +142,8 @@ mod tests {
 
     #[test]
     fn templates_contain_link() {
-        let (s, b) = render_register("Blynk", "http://x/verify");
-        assert!(s.contains("Blynk"));
+        let (s, b) = render_register("VOLTA.", "http://x/verify");
+        assert!(s.contains("VOLTA."));
         assert!(b.contains("http://x/verify"));
     }
 

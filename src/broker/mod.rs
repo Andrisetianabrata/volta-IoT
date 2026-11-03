@@ -30,24 +30,24 @@ pub enum Topic {
 pub fn parse_topic(t: &str) -> Option<Topic> {
     let p: Vec<&str> = t.split('/').collect();
     match p.as_slice() {
-        ["blynk", "dev", dev, "state", pin] => Some(Topic::State { device: dev.to_string(), pin: pin.to_string() }),
-        ["blynk", "dev", dev, "cmd", pin] => Some(Topic::Cmd { device: dev.to_string(), pin: pin.to_string() }),
-        ["blynk", "dev", dev, "status"] => Some(Topic::Status { device: dev.to_string() }),
-        ["blynk", "dev", dev, "log"] => Some(Topic::Log { device: dev.to_string() }),
+        ["volta", "dev", dev, "state", pin] => Some(Topic::State { device: dev.to_string(), pin: pin.to_string() }),
+        ["volta", "dev", dev, "cmd", pin] => Some(Topic::Cmd { device: dev.to_string(), pin: pin.to_string() }),
+        ["volta", "dev", dev, "status"] => Some(Topic::Status { device: dev.to_string() }),
+        ["volta", "dev", dev, "log"] => Some(Topic::Log { device: dev.to_string() }),
         _ => None,
     }
 }
 
 pub fn state_topic(device: &str, pin: &str) -> String {
-    format!("blynk/dev/{device}/state/{pin}")
+    format!("volta/dev/{device}/state/{pin}")
 }
 
 pub fn cmd_topic(device: &str, pin: &str) -> String {
-    format!("blynk/dev/{device}/cmd/{pin}")
+    format!("volta/dev/{device}/cmd/{pin}")
 }
 
 pub fn status_topic(device: &str) -> String {
-    format!("blynk/dev/{device}/status")
+    format!("volta/dev/{device}/status")
 }
 
 pub fn can_publish(device: &str, topic: &Topic) -> bool {
@@ -96,17 +96,17 @@ mod tests {
 
     #[test]
     fn topics_roundtrip() {
-        assert_eq!(state_topic("d1", "V0"), "blynk/dev/d1/state/V0");
-        assert!(matches!(parse_topic("blynk/dev/d1/state/V0"), Some(Topic::State { .. })));
-        assert!(parse_topic("blynk/dev/d1/nope").is_none());
+        assert_eq!(state_topic("d1", "V0"), "volta/dev/d1/state/V0");
+        assert!(matches!(parse_topic("volta/dev/d1/state/V0"), Some(Topic::State { .. })));
+        assert!(parse_topic("volta/dev/d1/nope").is_none());
     }
 
     #[test]
     fn acl_enforced() {
-        let t = parse_topic("blynk/dev/d1/state/V0").unwrap();
+        let t = parse_topic("volta/dev/d1/state/V0").unwrap();
         assert!(can_publish("d1", &t));
         assert!(!can_publish("d2", &t));
-        let c = parse_topic("blynk/dev/d1/cmd/V0").unwrap();
+        let c = parse_topic("volta/dev/d1/cmd/V0").unwrap();
         assert!(can_subscribe("d1", &c));
         assert!(!can_publish("d1", &c));
     }

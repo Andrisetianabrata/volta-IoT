@@ -419,35 +419,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "blynk-rs"
-version = "0.1.0"
-dependencies = [
- "axum 0.7.9",
- "axum-test",
- "chrono",
- "clap",
- "futures",
- "hex",
- "lettre",
- "rand",
- "rumqttd",
- "serde",
- "serde_json",
- "sha2",
- "sqlx",
- "tempfile",
- "thiserror 2.0.21",
- "tokio",
- "tokio-test",
- "toml 0.8.23",
- "tower 0.5.3",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
- "uuid",
-]
-
-[[package]]
 name = "bumpalo"
 version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3470,6 +3441,35 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+
+[[package]]
+name = "volta"
+version = "0.1.0"
+dependencies = [
+ "axum 0.7.9",
+ "axum-test",
+ "chrono",
+ "clap",
+ "futures",
+ "hex",
+ "lettre",
+ "rand",
+ "rumqttd",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tokio",
+ "tokio-test",
+ "toml 0.8.23",
+ "tower 0.5.3",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+ "uuid",
+]
 
 [[package]]
 name = "want"

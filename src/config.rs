@@ -73,7 +73,7 @@ impl Default for StorageConfig {
     fn default() -> Self {
         Self {
             busy_timeout_ms: 5000,
-            db_file: "blynk.db".to_string(),
+            db_file: "volta.db".to_string(),
         }
     }
 }
@@ -152,6 +152,6 @@ mod tests {
     fn db_path_resolves_relative_to_data_folder() {
         let cfg = AppConfig::default();
         let p = cfg.db_path(Path::new("/data"));
-        assert_eq!(p, Path::new("/data/blynk.db"));
+        assert_eq!(p, Path::new("/data/volta.db"));
     }
 }

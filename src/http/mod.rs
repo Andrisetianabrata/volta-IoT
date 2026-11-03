@@ -72,7 +72,7 @@ async fn register(State(s): State<Arc<AppState>>, Json(b): Json<RegisterBody>) -
         auth::AuthError::Exists => ApiError::new(StatusCode::CONFLICT, "EXISTS", e.to_string()),
         _ => ApiError::bad_request("INVALID", e.to_string()),
     })?;
-    let (subj, body) = mailer::render_register("Blynk RS", &id);
+    let (subj, body) = mailer::render_register("VOLTA.", &id);
     let _ = s.db.enqueue_mail(&b.email, &subj, &body, now_unix()).await;
     Ok((StatusCode::CREATED, Json(IdBody { user_id: id })))
 }

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use blynk_rs::{cli::Args, config::AppConfig, http, mailer, rule, storage};
+use volta::{cli::Args, config::AppConfig, http, mailer, rule, storage};
 use clap::Parser;
 use tracing_subscriber::{EnvFilter, prelude::*};
 
@@ -9,7 +9,7 @@ fn init_tracing(data_folder: &std::path::Path, log_level: &str) {
         .or_else(|_| EnvFilter::try_new(log_level))
         .unwrap_or_else(|_| EnvFilter::new("info"));
     let file_appender =
-        tracing_appender::rolling::daily(data_folder.join("logs"), "blynk-rs.log");
+        tracing_appender::rolling::daily(data_folder.join("logs"), "volta.log");
     let (file_writer, guard) = tracing_appender::non_blocking(file_appender);
     Box::leak(Box::new(guard));
     let _ = tracing_subscriber::registry()
@@ -57,7 +57,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         mqtt_local = config.mqtt.local_port,
         mqtt_tls = config.mqtt.tls_port,
         https = config.http.https_port,
-        "blynk-rs starting"
+        "volta starting"
     );
     let listener = tokio::net::TcpListener::bind(&addr).await?;
     axum::serve(listener, app).await?;

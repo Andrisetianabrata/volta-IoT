@@ -1,11 +1,10 @@
-# Install Blynk RS
+# Install VOLTA.
 
 ## Build
 
 ```sh
-cd blynk-rs
 cargo build --release
-./target/release/blynk-rs --data-folder ./data
+./target/release/volta --data-folder ./data
 ```
 
 Port: 1883 MQTT lokal, 8883 MQTT TLS (via reverse proxy / rumqttd), 9443 HTTP app.
@@ -24,7 +23,7 @@ tls_port = 8883
 https_port = 9443
 [storage]
 busy_timeout_ms = 5000
-db_file = "blynk.db"
+db_file = "volta.db"
 ```
 
 `data/mailer.toml`:
@@ -36,7 +35,7 @@ port = 587
 tls = "starttls"
 username = "no-reply@example.com"
 password = "REPLACE_ME"
-from = "\"Blynk RS\" <no-reply@example.com>"
+from = "\"VOLTA.\" <no-reply@example.com>"
 [queue]
 max = 10000
 ```

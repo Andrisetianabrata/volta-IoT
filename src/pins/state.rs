@@ -48,11 +48,11 @@ mod tests {
         db.create_device("d1", "u1", "esp", now).await.unwrap();
         let bus = PinBus::new(16);
         let mut rx = bus.subscribe();
-        handle_publish(&db, &bus, "d1", "blynk/dev/d1/state/V0", "42").await.unwrap();
+        handle_publish(&db, &bus, "d1", "volta/dev/d1/state/V0", "42").await.unwrap();
         let pin = db.get_pin("d1", "V0").await.unwrap().unwrap();
         assert_eq!(pin.value, "42");
         let ev = rx.recv().await.unwrap();
         assert_eq!(ev.value, "42");
-        assert!(handle_publish(&db, &bus, "d2", "blynk/dev/d1/state/V0", "1").await.is_err());
+        assert!(handle_publish(&db, &bus, "d2", "volta/dev/d1/state/V0", "1").await.is_err());
     }
 }

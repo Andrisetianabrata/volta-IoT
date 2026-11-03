@@ -1,10 +1,10 @@
-# Perencanaan Blynk RS: Ulang Bangun MQTT-Only di Rust
+# Perencanaan VOLTA.: MQTT-Only di Rust
 
 ## Ringkasan
 
-Membangun ulang Blynk server sebagai server MQTT-only di Rust. Tidak ada protokol binary TCP legacy. Hardware berbicara MQTT, server menyimpan state pin di SQLite, aplikasi baru mengambil data lewat HTTPS REST dan WebSocket. Mailer SMTP wajib jalan sejak Fase 1, bukan fitur sampingan.
+VOLTA. adalah server MQTT-only di Rust. Tidak ada protokol binary TCP legacy. Hardware berbicara MQTT, server menyimpan state pin di SQLite, aplikasi baru mengambil data lewat HTTPS REST dan WebSocket. Mailer SMTP wajib jalan sejak Fase 1, bukan fitur sampingan.
 
-Folder project: `blynk-rs/`. Source Java lama dipakai sebagai daftar fitur saja, protokolnya dibuang.
+Folder project: root repo (`Cargo.toml`, `src/`).
 
 Verifikasi pustaka via Context7: rumqttd dapat diembed dengan `LinkBuilder` sejak 0.16 dan mendukung TLS serta QoS2; sqlx tidak menyalakan WAL otomatis sehingga `journal_mode(Wal)` harus diset eksplisit; lettre punya `AsyncSmtpTransport::starttls_relay` dan `test_connection()`; axum punya `Path` extractor dan `WebSocketUpgrade`; `rustls-acme` menangani sertifikat Let's Encrypt otomatis.
 
@@ -12,10 +12,10 @@ Verifikasi pustaka via Context7: rumqttd dapat diembed dengan `LinkBuilder` seja
 
 1. **rumqttd diembed sebagai broker di dalam proses Rust.** Server menyadap dan memasukkan pesan lewat `LinkBuilder` (LinkRx/LinkTx). Tidak ada broker eksternal, satu biner, deploy sederhana. TLS broker diset di config rumqttd.
 2. **Topik MQTT desain baru:**
-   - `blynk/dev/{device_id}/state/{pin}`: device publish ke server, QoS 1, retained
-   - `blynk/dev/{device_id}/cmd/{pin}`: server publish perintah ke device, device subscribe topicnya sendiri, QoS 1, tidak retained
-   - `blynk/dev/{device_id}/status`: retained online/offline, diset lewat LWT saat connect
-   - `blynk/dev/{device_id}/log`: device publish pesan untuk widget terminal, QoS 0
+   - `volta/dev/{device_id}/state/{pin}`: device publish ke server, QoS 1, retained
+   - `volta/dev/{device_id}/cmd/{pin}`: server publish perintah ke device, device subscribe topicnya sendiri, QoS 1, tidak retained
+   - `volta/dev/{device_id}/status`: retained online/offline, diset lewat LWT saat connect
+   - `volta/dev/{device_id}/log`: device publish pesan untuk widget terminal, QoS 0
    - ACL: satu device hanya boleh publish `state` dan `log` miliknya, dan hanya subscribe `cmd` serta `status` miliknya.
 3. **Auth device lewat token.** Username MQTT = device token 32 karakter, password = token yang sama atau secret kedua. Token yang direvoke di DB memutus koneksi aktif.
 4. **App baru via HTTPS REST dan WebSocket di Axum.** Header `Authorization: Bearer <session>`. Body JSON dengan `error.code` dan `error.message` konsisten di semua endpoint.
@@ -79,7 +79,7 @@ Verifikasi pustaka via Context7: rumqttd dapat diembed dengan `LinkBuilder` seja
 
 ### Task 1: Scaffolding crate, config, CLI, tracing
 
-Deskripsi: crate `blynk-rs/` dengan `Cargo.toml`, modul `config`, `cli`, shared state, dan sinonim kosong untuk broker, mailer, http, storage yang akan datang. clap menangani `-dataFolder`, `-config`. tracing ke stdout dan file.
+Deskripsi: crate di root dengan `Cargo.toml`, modul `config`, `cli`, shared state, dan sinonim kosong untuk broker, mailer, http, storage yang akan datang. clap menangani `-dataFolder`, `-config`. tracing ke stdout dan file.
 
 Kriteria:
 - [ ] `cargo build` lulus, `cargo clippy -- -D warnings` lulus
@@ -183,4 +183,4 @@ Berkas: `src/pins/command.rs`. Estimasi: S. Dependensi: Task 7.
 1. MQTT versi final: 3.1.1 saja cukup, atau 5 juga?
 2. TLS device: self-signed CA yang didistribusikan saat provisioning, atau sertifikat server ACME?
 3. Session app: JWT stateless atau session stateful di DB?
-4. Nama biner: `blynk-rs`, `blynkd`, atau lain?
+4. Nama biner: `volta` (diputuskan).

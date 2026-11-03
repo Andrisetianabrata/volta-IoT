@@ -1,4 +1,4 @@
-# Daftar Task: Blynk RS (MQTT-Only, Rust)
+# Daftar Task: VOLTA. (MQTT-Only, Rust)
 
 Rincian kriteria dan verifikasi ada di `tasks/plan.md`, checklist ini hanya status pengerjaan.
 
