@@ -168,6 +168,64 @@ Verifikasi: integrasi test.
 
 Berkas: `src/pins/command.rs`. Estimasi: S. Dependensi: Task 7.
 
+## Fase 5: SaaS (baru — multi-penyewa siap jual)
+
+Fase 1–4 membangun server untuk satu pemilik. Fase 5 menjadikannya
+layak jual: isolasi per user sudah ada; yang ditambah adalah berbagi
+terkendali, batas paket, dan identitas brand per pelanggan.
+
+### S5: Berbagi dashboard read-only
+
+Deskripsi: tabel `shares(id, dashboard_id, token, role, created_at)`,
+`role` selalu `viewer` di v1. Endpoint publik `GET /s/{token}` membaca
+dashboard + widget tanpa login (tanpa daftar device, tanpa tulis).
+Token acak 32 char, dapat dicabut (DELETE).
+
+Kriteria:
+- [ ] link `/s/{token}` tampil read-only tanpa sesi
+- [ ] token salah/dicabut → 404, tidak bocor keberadaan dashboard
+- [ ] pemilik bisa cabut kapan saja, langsung tidak berlaku
+
+Verifikasi: `cargo test` (buat → baca publik → cabut → 404).
+
+Berkas: `migrations/*shares*`, `src/storage/*`, `src/http/mod.rs`. Estimasi: M. Dependensi: Task 10.
+
+### S6: Kuota paket
+
+Deskripsi: batas per user yang bisa dipegang operator: maks device dan
+maks widget per dashboard (konstanta config, misal 10 device, 50 widget).
+Create yang melebihi batas gagal dengan 409 + pesan upgrade, bukan 500.
+
+Kriteria:
+- [ ] create device ke-11 ditolak 409 dengan pesan jelas
+- [ ] create widget ke-51 per dashboard ditolak 409
+- [ ] batas dari satu tempat konfigurasi, bukan angka tersebar
+
+Verifikasi: `cargo test` (isi sampai batas, satu lebihnya ditolak).
+
+Berkas: `src/config.rs`, `src/http/mod.rs`. Estimasi: S. Dependensi: tidak ada.
+
+### S7: Branding per pelanggan
+
+Deskripsi: tabel `branding(user_id PK, app_name, logo_url, accent)`,
+endpoint auth `GET/PUT /branding` untuk milik sendiri. Webapp memakai
+ini setelah login (judul, logo, aksen); halaman login pakai brand default.
+
+Kriteria:
+- [ ] tiap user bisa simpan 1 set brand miliknya sendiri
+- [ ] user lain tidak bisa baca/ubah brand orang (404 silang)
+- [ ] `accent` tidak valid (bukan hex 6 digit) ditolak 400
+
+Verifikasi: `cargo test` (CRUD + isolasi antar user).
+
+Berkas: `migrations/*branding*`, `src/storage/*`, `src/http/mod.rs`. Estimasi: M. Dependensi: Task 9.
+
+### Checkpoint 5
+
+- [ ] Berbagi read-only jalan end-to-end (buat → buka tanpa login → cabut)
+- [ ] Kuota menolak dengan pesan upgrade, bukan error mentah
+- [ ] Branding tersimpan per user dan terisolasi
+
 ## Risiko dan Mitigasi
 
 | Risiko | Dampak | Mitigasi |

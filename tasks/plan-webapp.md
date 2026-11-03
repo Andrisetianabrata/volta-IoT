@@ -313,6 +313,56 @@ status dari respons, konfirmasi sebelum mulai.
 
 **Estimated scope:** XS (1 file)
 
+### Task W12: Editor visual dashboard
+
+**Description:** Ubah kanvas W10 dari read-only menjadi bisa disusun:
+palet kind widget, tambah via klik, pindah via drag dalam grid 12 kolom,
+panel properti (pin, label, min/max, warna), simpan via PUT/POST/DELETE
+yang sudah ada. Layout disimpan di `config` (`{x, y, w, h, order}`).
+
+**Acceptance criteria:**
+- [ ] Tambah / pindah / hapus widget tanpa sentuh API mentah
+- [ ] Refresh memuat susunan yang sama (bukti persistensi)
+- [ ] Perubahan tak sengaja tidak tersimpan (tombol Simpan eksplisit per panel)
+
+**Verification:**
+- [ ] Playwright: tambah → pindah → reload → susunan sama → hapus
+- [ ] Manual: editor bisa dipakai orang non-teknis tanpa baca docs
+
+**Dependencies:** W8, W10 (butuh renderer + API widget lengkap)
+
+**Files likely touched:**
+- `webapp/app/(dashboards)/[id]/edit/page.tsx` (atau mode edit di kanvas)
+- `webapp/components/widget-palette.tsx`
+- `webapp/components/widget-props.tsx`
+
+**Estimated scope:** M (3–4 file)
+
+### Task W13: Wajah SaaS (branding, berbagi, peran)
+
+**Description:** Terapkan branding per user (judul, logo, aksen dari
+`GET /branding`), halaman publik read-only `/s/[token]` (tanpa login,
+tanpa kontrol tulis), dan badge peran: viewer tidak melihat tombol
+tulis/hapus di mana pun.
+
+**Acceptance criteria:**
+- [ ] Ganti brand → judul, logo, aksen ikut berubah setelah login ulang
+- [ ] Link berbagi dibuka tanpa login: baca saja, tanpa tombol tulis
+- [ ] Token dicabut → halaman berbagi jadi 404 yang jelas
+
+**Verification:**
+- [ ] Playwright: buat share → buka tanpa sesi → read-only → cabut → 404
+- [ ] Manual: cek viewer tidak bisa memicu satu pun request tulis (pantau network)
+
+**Dependencies:** W8 (detail sebagai basis view publik), S5 + S7 server
+
+**Files likely touched:**
+- `webapp/app/s/[token]/page.tsx`
+- `webapp/components/brand-provider.tsx`
+- `webapp/lib/permissions.ts` (satu gerbang `bolehNulis`)
+
+**Estimated scope:** M (3 file)
+
 #### Task W10: Dashboard dinamis ala no-code engine
 **Description:** Render dashboard murni dari definisi server
 (`GET /dashboards`, `GET /dashboards/{id}/widgets` → `{id, kind, pin,
@@ -369,7 +419,7 @@ induk → widget `{type:"pin", pin, value}` tiap update. Batas ukuran
 **Estimated scope:** S (2 file + contoh)
 
 ### Checkpoint C — Selesai
-- [ ] Semua acceptance criteria W1–W11 terpenuhi
+- [ ] Semua acceptance criteria W1–W13 terpenuhi
 - [ ] Gate visual: `lint.mjs --app` 0 FAIL, `inspect.mjs --app` 0 FAIL di 1440/768/390, kritik 3 ronde tercatat
 - [ ] Kontras teks ≥ 4.5:1 (cek tool), keyboard penuh (Tab/Enter/Escape), state empty/loading/error ada di tiap blok data
 - [ ] Tidak ada data contoh/invented di mana pun; angka lolos uji "total dari baris"
@@ -388,7 +438,7 @@ induk → widget `{type:"pin", pin, value}` tiap update. Batas ukuran
 ## Open Questions
 
 - Target hosting webapp (mesin yang sama / Vercel / lain)? Menentukan `VOLTA_API_URL` + strategi build. Default rencana: env var saat build, didokumentasikan di webapp README.
-- Apakah dashboard/widget masuk v1? Ya — masuk sebagai T10–T11 (keputusan: diambil setelah user meminta engine no-code + HTML widget).
+- Apakah dashboard/widget masuk v1? Ya — masuk sebagai W10–W13 (keputusan: no-code engine + HTML widget + editor + wajah SaaS).
 - Retensi history default grafik (1H/24H) cukup, atau perlu 7D? Butuh jawaban sebelum T6 final (default: cukup).
 
 ## Verification (global)

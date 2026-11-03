@@ -33,10 +33,12 @@ Task server Rust tetap di `tasks/todo.md` (selesai, jangan campur).
 - [ ] Task W9: Kontrol OTA (XS)
 - [ ] Task W10: Dashboard dinamis ala no-code engine (M)
 - [ ] Task W11: Widget HTML kustom sandbox (S)
+- [ ] Task W12: Editor visual dashboard (M)
+- [ ] Task W13: Wajah SaaS — branding, berbagi, peran (M)
 
 ## Checkpoint C
 
-- [ ] Semua acceptance W1–W11 terpenuhi
+- [ ] Semua acceptance W1–W13 terpenuhi
 - [ ] Gate visual lolos (lint + inspect + kritik tercatat)
 - [ ] Kontras ≥ 4.5:1, keyboard penuh, semua state ada
 - [ ] Tanpa data invented; README diperbarui

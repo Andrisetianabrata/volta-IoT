@@ -49,3 +49,15 @@ Rincian kriteria dan verifikasi ada di `tasks/plan.md`, checklist ini hanya stat
 ## Checkpoint 4
 
 - [x] Semua kriteria di plan.md terpenuhi
+
+## Fase 5: SaaS (baru)
+
+- [ ] S5: Berbagi dashboard read-only (M)
+- [ ] S6: Kuota paket (S)
+- [ ] S7: Branding per pelanggan (M)
+
+## Checkpoint 5
+
+- [ ] Berbagi read-only jalan end-to-end (buat → buka tanpa login → cabut)
+- [ ] Kuota menolak dengan pesan upgrade, bukan error mentah
+- [ ] Branding tersimpan per user dan terisolasi
