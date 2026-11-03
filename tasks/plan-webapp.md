@@ -60,46 +60,63 @@ milik server Rust (selesai 100%). Task webapp hidup di file ini dan
 Catatan: nilai final dikunci saat implementasi T1 dan diverifikasi
 dengan contrast checker (teks normal ≥ 4.5:1, besar ≥ 3:1).
 
-## Struktur tab
+## Struktur tab & live-wiring
 
-Lima tab di rail (desktop) / bottom-bar (mobile): Monitor, Devices,
-Provision, Dashboards, Health. Halaman detail hanya dicapai dari daftar,
-tidak duduk di tab. Tanpa sesi semua tab mengarah ke login; device yang
-dipilih dibagikan antar tab.
+Enam tab di rail (desktop) / bottom-bar (mobile): Monitor, Devices,
+Provision, Dashboards, Health, Settings. Halaman detail hanya dicapai
+dari daftar, tidak duduk di tab. Tanpa sesi semua tab mengarah ke login;
+device yang dipilih dibagikan antar tab.
+
+Panah tegas = navigasi antar layar. Panah titik-titik = aliran data live.
+Semua layar baca-tulis lewat REST (`/api/*`); pin live dan event hanya
+lewat satu koneksi WS per device terpilih; perintah tulis kembali via REST.
 
 ```mermaid
 flowchart TD
-    subgraph TABS ["tab utama"]
-        MON([Monitor])
-        DEVS([Devices])
-        PROV([Provision])
-        DASH([Dashboards])
-        HEALTH([Health])
-    end
-    PINS[Pin live + grafik + event + kirim perintah]
-    DET[Detail satu device]
-    FORM[Form device baru + token sekali tampil]
-    KANVAS[Kanvas dinamis dari definisi server]
-    STAT[Strip + rincian kesehatan server]
-    MON --- PINS
-    MON --- STAT
-    DEVS -->|"pilih"| DET
+    LOGIN["Login — masuk / daftar"]
+    MON["Monitor — pin live + grafik + event"]
+    DEVS["Devices — daftar + status"]
+    DET["Detail device"]
+    PROV["Provision — buat + token"]
+    DASH["Dashboards — daftar"]
+    KANVAS["Kanvas dinamis"]
+    HEALTH["Health — broker/db/mailer"]
+    SET["Settings — tema, akun, server"]
+    API[(REST API)]
+    WS{{"WS /stream — 1 koneksi per device"}}
+
+    LOGIN -->|"sesi valid"| MON
+    MON <-->|"pilih device"| DEVS
+    DEVS -->|"buka"| DET
     DET -.->|"kembali"| DEVS
-    PROV --> FORM
-    FORM -->|"device baru muncul di"| DEVS
-    FORM -->|"langsung pantau"| MON
-    DASH --- KANVAS
-    HEALTH --- STAT
+    MON -->|"tambah"| PROV
+    PROV -->|"device baru → pantau"| MON
+    PROV -->|"terdaftar di"| DEVS
+    DASH -->|"buka"| KANVAS
+    MON --- DASH
+    MON --- HEALTH
+    MON --- SET
+    MON -.->|"subscribe pin + event"| WS
+    WS -.->|"publish cmd via REST"| MON
+    MON --- API
+    DEVS --- API
+    DET --- API
+    PROV --- API
+    DASH --- API
+    KANVAS --- API
+    HEALTH --- API
+    SET --- API
 ```
 
 | Tab | Berisi | Terhubung ke |
 |---|---|---|
-| Monitor | Pin live, grafik history, feed event, kirim perintah, strip kesehatan | Devices (ganti device pantauan); Provision (tambah device bila kosong) |
+| Monitor | Pin live, grafik history, feed event, kirim perintah, strip kesehatan | Devices (ganti device pantauan); Provision (tambah bila kosong); Settings (tema/akun) |
 | Devices | Daftar + status online/offline jujur | Detail device (dipilih); Provision (bila kosong) |
 | Detail device | Pin, grafik, perintah, status, hapus (dicapai dari daftar) | Kembali ke Devices |
 | Provision | Form buat device, token sekali tampil + salin, tabel + hapus 2 tahap | Device baru langsung bisa dipilih di Monitor dan Devices |
-| Dashboards | Daftar dashboard | Kanvas dinamis (T10) per dashboard |
+| Dashboards | Daftar dashboard | Kanvas dinamis (W10) per dashboard |
 | Health | Broker, db, mailer, statistik (sumber sama dengan strip Monitor) | Strip di Monitor memakai sumber data yang sama |
+| Settings | Tema gelap/terang, akun + keluar, info server, status WS + sambung ulang | Dibuka dari rail/bottom-bar; tidak memutus pantauan |
 
 ## Task List
 
@@ -108,7 +125,7 @@ flowchart TD
 #### Task W1: Scaffold webapp + sistem desain dua tema
 **Description:** Inisialisasi Next.js (App Router, TS strict), Tailwind,
 shadcn/ui, token CSS dua tema, font Montserrat + IBM Plex Mono, rail ikon
-+ bottom bar mobile, halaman kosong tiap view (monitor, provision, health).
+6 tab + bottom bar mobile, halaman kosong tiap view.
 
 **Acceptance criteria:**
 - [ ] `npm run build` lolos tanpa error TS
@@ -363,6 +380,29 @@ tulis/hapus di mana pun.
 
 **Estimated scope:** M (3 file)
 
+### Task W14: Pengaturan (tema, akun, server)
+
+**Description:** Layar Settings: toggle tema gelap/terang (tersimpan),
+baris akun (email + tombol Keluar), info server (URL basis + status
+terhubung), status koneksi WS + tombol "Sambung ulang" manual.
+
+**Acceptance criteria:**
+- [ ] Ganti tema langsung berlaku dan bertahan setelah reload
+- [ ] Keluar menghapus sesi dan mengarah ke login
+- [ ] WS putus terlihat statusnya; tombol sambung ulang menyambung kembali
+
+**Verification:**
+- [ ] Playwright: ganti tema → reload → tema bertahan
+- [ ] Manual: matikan server → status WS berubah → nyalakan → sambung ulang manual jalan
+
+**Dependencies:** W1 (shell), W5 (status WS dipakai ulang)
+
+**Files likely touched:**
+- `webapp/app/(shell)/settings/page.tsx`
+- `webapp/components/theme-toggle.tsx`
+
+**Estimated scope:** S (1–2 file)
+
 #### Task W10: Dashboard dinamis ala no-code engine
 **Description:** Render dashboard murni dari definisi server
 (`GET /dashboards`, `GET /dashboards/{id}/widgets` → `{id, kind, pin,
@@ -419,7 +459,7 @@ induk → widget `{type:"pin", pin, value}` tiap update. Batas ukuran
 **Estimated scope:** S (2 file + contoh)
 
 ### Checkpoint C — Selesai
-- [ ] Semua acceptance criteria W1–W13 terpenuhi
+- [ ] Semua acceptance criteria W1–W14 terpenuhi
 - [ ] Gate visual: `lint.mjs --app` 0 FAIL, `inspect.mjs --app` 0 FAIL di 1440/768/390, kritik 3 ronde tercatat
 - [ ] Kontras teks ≥ 4.5:1 (cek tool), keyboard penuh (Tab/Enter/Escape), state empty/loading/error ada di tiap blok data
 - [ ] Tidak ada data contoh/invented di mana pun; angka lolos uji "total dari baris"
