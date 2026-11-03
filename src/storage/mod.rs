@@ -127,10 +127,14 @@ pub trait Storage: Send + Sync + 'static {
     async fn query_history(&self, device_id: &str, pin: &str, from: i64, to: i64, limit: i64) -> Result<Vec<PinHistory>, sqlx::Error>;
 
     async fn create_dashboard(&self, id: &str, user_id: &str, name: &str, now: i64) -> Result<(), sqlx::Error>;
+    async fn get_dashboard(&self, id: &str) -> Result<Option<Dashboard>, sqlx::Error>;
     async fn list_dashboards(&self, user_id: &str) -> Result<Vec<Dashboard>, sqlx::Error>;
     async fn update_dashboard(&self, id: &str, name: &str) -> Result<(), sqlx::Error>;
     async fn delete_dashboard(&self, id: &str) -> Result<(), sqlx::Error>;
     async fn create_widget(&self, id: &str, dashboard_id: &str, kind: &str, pin: &str, config: &str) -> Result<(), sqlx::Error>;
+    async fn get_widget(&self, id: &str) -> Result<Option<Widget>, sqlx::Error>;
+    async fn update_widget(&self, id: &str, kind: &str, pin: &str, config: &str) -> Result<(), sqlx::Error>;
+    async fn delete_widget(&self, id: &str) -> Result<(), sqlx::Error>;
     async fn list_widgets(&self, dashboard_id: &str) -> Result<Vec<Widget>, sqlx::Error>;
 
     async fn enqueue_mail(&self, to: &str, subject: &str, body: &str, now: i64) -> Result<i64, sqlx::Error>;

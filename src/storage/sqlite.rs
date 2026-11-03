@@ -114,6 +114,9 @@ impl Storage for SqliteStorage {
             .bind(id).bind(user_id).bind(name).bind(now)
             .execute(&self.pool).await.map(|_| ())
     }
+    async fn get_dashboard(&self, id: &str) -> Result<Option<Dashboard>, sqlx::Error> {
+        sqlx::query_as("SELECT * FROM dashboards WHERE id=?").bind(id).fetch_optional(&self.pool).await
+    }
     async fn list_dashboards(&self, user_id: &str) -> Result<Vec<Dashboard>, sqlx::Error> {
         sqlx::query_as("SELECT * FROM dashboards WHERE user_id=?").bind(user_id).fetch_all(&self.pool).await
     }
@@ -127,6 +130,15 @@ impl Storage for SqliteStorage {
         sqlx::query("INSERT INTO dashboard_widgets(id,dashboard_id,kind,pin,config) VALUES(?,?,?,?,?)")
             .bind(id).bind(dashboard_id).bind(kind).bind(pin).bind(config)
             .execute(&self.pool).await.map(|_| ())
+    }
+    async fn get_widget(&self, id: &str) -> Result<Option<Widget>, sqlx::Error> {
+        sqlx::query_as("SELECT * FROM dashboard_widgets WHERE id=?").bind(id).fetch_optional(&self.pool).await
+    }
+    async fn update_widget(&self, id: &str, kind: &str, pin: &str, config: &str) -> Result<(), sqlx::Error> {
+        sqlx::query("UPDATE dashboard_widgets SET kind=?, pin=?, config=? WHERE id=?").bind(kind).bind(pin).bind(config).bind(id).execute(&self.pool).await.map(|_| ())
+    }
+    async fn delete_widget(&self, id: &str) -> Result<(), sqlx::Error> {
+        sqlx::query("DELETE FROM dashboard_widgets WHERE id=?").bind(id).execute(&self.pool).await.map(|_| ())
     }
     async fn list_widgets(&self, dashboard_id: &str) -> Result<Vec<Widget>, sqlx::Error> {
         sqlx::query_as("SELECT * FROM dashboard_widgets WHERE dashboard_id=?").bind(dashboard_id).fetch_all(&self.pool).await
@@ -222,6 +234,23 @@ mod tests {
         assert!(online.is_empty());
         s.set_status("d1", true, now).await.unwrap();
         assert_eq!(s.list_online_device_ids().await.unwrap(), vec!["d1".to_string()]);
+    }
+
+    #[tokio::test]
+    async fn widget_crud_roundtrip() {
+        let s = mem().await;
+        let now = now_unix();
+        s.create_user("u1", "a@b.c", "h", now).await.unwrap();
+        s.create_dashboard("db1", "u1", "main", now).await.unwrap();
+        assert!(s.get_dashboard("db1").await.unwrap().is_some());
+        assert!(s.get_dashboard("nope").await.unwrap().is_none());
+        s.create_widget("w1", "db1", "Gauge", "V0", "{}").await.unwrap();
+        assert_eq!(s.get_widget("w1").await.unwrap().unwrap().kind, "Gauge");
+        s.update_widget("w1", "Button", "V1", "{\"max\":100}").await.unwrap();
+        let w = s.get_widget("w1").await.unwrap().unwrap();
+        assert_eq!((w.kind.as_str(), w.pin.as_str()), ("Button", "V1"));
+        s.delete_widget("w1").await.unwrap();
+        assert!(s.get_widget("w1").await.unwrap().is_none());
     }
 
     #[tokio::test]

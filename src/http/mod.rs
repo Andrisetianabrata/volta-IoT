@@ -131,14 +131,42 @@ async fn create_dashboard(State(s): State<Arc<AppState>>, headers: HeaderMap, Js
     Ok((StatusCode::CREATED, Json(serde_json::json!({"id": id}))))
 }
 
+async fn owned_dashboard(
+    db: &SqliteStorage,
+    user_id: &str,
+    dashboard_id: &str,
+) -> Result<crate::storage::Dashboard, ApiError> {
+    let d = db
+        .get_dashboard(dashboard_id)
+        .await?
+        .ok_or_else(|| ApiError::not_found("dashboard tidak ada"))?;
+    if d.user_id != user_id {
+        return Err(ApiError::not_found("dashboard tidak ada"));
+    }
+    Ok(d)
+}
+
+const MAX_WIDGET_CONFIG_LEN: usize = 65536;
+
+fn check_widget_config(config: &str) -> Result<(), ApiError> {
+    if config.len() > MAX_WIDGET_CONFIG_LEN {
+        return Err(ApiError::bad_request("CONFIG_TOO_LARGE", "config melebihi 64 KB"));
+    }
+    serde_json::from_str::<serde_json::Value>(config)
+        .map(|_| ())
+        .map_err(|_| ApiError::bad_request("INVALID_CONFIG", "config harus JSON valid"))
+}
+
 async fn update_dashboard(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>, Json(b): Json<DashboardBody>) -> Result<impl IntoResponse, ApiError> {
-    let _ = uid(&s, &headers).await?;
+    let u = uid(&s, &headers).await?;
+    owned_dashboard(s.db.as_ref(), &u, &id).await?;
     s.db.update_dashboard(&id, &b.name).await?;
     Ok(Json(serde_json::json!({"ok": true})))
 }
 
 async fn delete_dashboard(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>) -> Result<impl IntoResponse, ApiError> {
-    let _ = uid(&s, &headers).await?;
+    let u = uid(&s, &headers).await?;
+    owned_dashboard(s.db.as_ref(), &u, &id).await?;
     s.db.delete_dashboard(&id).await?;
     Ok(Json(serde_json::json!({"ok": true})))
 }
@@ -267,15 +295,46 @@ pub struct WidgetBody {
 }
 
 async fn list_widgets(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>) -> Result<impl IntoResponse, ApiError> {
-    let _ = uid(&s, &headers).await?;
+    let u = uid(&s, &headers).await?;
+    owned_dashboard(s.db.as_ref(), &u, &id).await?;
     Ok(Json(s.db.list_widgets(&id).await?))
 }
 
 async fn create_widget(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>, Json(b): Json<WidgetBody>) -> Result<impl IntoResponse, ApiError> {
-    let _ = uid(&s, &headers).await?;
+    let u = uid(&s, &headers).await?;
+    owned_dashboard(s.db.as_ref(), &u, &id).await?;
+    let cfg = b.config.as_deref().unwrap_or("{}");
+    check_widget_config(cfg)?;
     let wid = uuid::Uuid::new_v4().to_string();
-    s.db.create_widget(&wid, &id, &b.kind, &b.pin, b.config.as_deref().unwrap_or("{}")).await?;
+    s.db.create_widget(&wid, &id, &b.kind, &b.pin, cfg).await?;
     Ok((StatusCode::CREATED, Json(serde_json::json!({"id": wid}))))
+}
+
+#[derive(Deserialize)]
+pub struct UpdateWidgetBody {
+    pub kind: Option<String>,
+    pub pin: Option<String>,
+    pub config: Option<String>
+}
+
+async fn update_widget(State(s): State<Arc<AppState>>, headers: HeaderMap, Path((id, wid)): Path<(String, String)>, Json(b): Json<UpdateWidgetBody>) -> Result<impl IntoResponse, ApiError> {
+    let u = uid(&s, &headers).await?;
+    owned_dashboard(s.db.as_ref(), &u, &id).await?;
+    let w = s.db.get_widget(&wid).await?.filter(|w| w.dashboard_id == id).ok_or_else(|| ApiError::not_found("widget tidak ada"))?;
+    let kind = b.kind.as_deref().unwrap_or(&w.kind);
+    let pin = b.pin.as_deref().unwrap_or(&w.pin);
+    let cfg = b.config.as_deref().unwrap_or(&w.config);
+    check_widget_config(cfg)?;
+    s.db.update_widget(&wid, kind, pin, cfg).await?;
+    Ok(Json(serde_json::json!({"ok": true})))
+}
+
+async fn delete_widget(State(s): State<Arc<AppState>>, headers: HeaderMap, Path((id, wid)): Path<(String, String)>) -> Result<impl IntoResponse, ApiError> {
+    let u = uid(&s, &headers).await?;
+    owned_dashboard(s.db.as_ref(), &u, &id).await?;
+    s.db.get_widget(&wid).await?.filter(|w| w.dashboard_id == id).ok_or_else(|| ApiError::not_found("widget tidak ada"))?;
+    s.db.delete_widget(&wid).await?;
+    Ok(Json(serde_json::json!({"ok": true})))
 }
 
 #[derive(Deserialize)]
@@ -341,6 +400,7 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/dashboards", get(list_dashboards).post(create_dashboard))
         .route("/dashboards/:id", put(update_dashboard).delete(delete_dashboard))
         .route("/dashboards/:id/widgets", get(list_widgets).post(create_widget))
+        .route("/dashboards/:id/widgets/:wid", put(update_widget).delete(delete_widget))
         .route("/devices", get(list_devices).post(create_device))
         .route("/devices/:id", delete(delete_device))
         .route("/devices/:id/status", get(device_status))
@@ -415,6 +475,97 @@ mod tests {
         h.insert("authorization", "Bearer hdr".parse().unwrap());
         let q2 = StreamQuery { token: Some("qry".to_string()) };
         assert_eq!(stream_token(&h, &q2).unwrap(), "hdr");
+    }
+
+    async fn authed(a: &Router, email: &str) -> String {
+        let reg = Request::builder().uri("/auth/register").method("POST").header("content-type", "application/json").body(Body::from(format!(r#"{{"email":"{email}","password":"password123"}}"#))).unwrap();
+        let r = a.clone().oneshot(reg).await.unwrap();
+        assert_eq!(r.status(), StatusCode::CREATED);
+        let login = Request::builder().uri("/auth/login").method("POST").header("content-type", "application/json").body(Body::from(format!(r#"{{"email":"{email}","password":"password123"}}"#))).unwrap();
+        let r = a.clone().oneshot(login).await.unwrap();
+        assert_eq!(r.status(), StatusCode::OK);
+        let b = axum::body::to_bytes(r.into_body(), 4096).await.unwrap();
+        serde_json::from_slice::<serde_json::Value>(&b).unwrap()["token"].as_str().unwrap().to_string()
+    }
+
+    async fn call(a: &Router, method: &str, uri: &str, token: Option<&str>, body: Option<serde_json::Value>) -> (StatusCode, serde_json::Value) {
+        let mut b = Request::builder().uri(uri).method(method);
+        if let Some(t) = token {
+            b = b.header("authorization", format!("Bearer {t}"));
+        }
+        let body = match body {
+            Some(v) => b.header("content-type", "application/json").body(Body::from(v.to_string())).unwrap(),
+            None => b.body(Body::empty()).unwrap(),
+        };
+        let r = a.clone().oneshot(body).await.unwrap();
+        let status = r.status();
+        let bytes = axum::body::to_bytes(r.into_body(), 1024 * 1024).await.unwrap_or_default();
+        let json: serde_json::Value = serde_json::from_slice(&bytes).unwrap_or(serde_json::Value::Null);
+        (status, json)
+    }
+
+    #[tokio::test]
+    async fn widget_crud_enforces_ownership() {
+        let a = app().await;
+        let (t1, t2) = (authed(&a, "w1@x.co").await, authed(&a, "w2@x.co").await);
+        let (_, db) = call(&a, "POST", "/dashboards", Some(&t1), Some(serde_json::json!({"name":"d1"}))).await;
+        let did = db["id"].as_str().unwrap().to_string();
+
+        let (s, w) = call(&a, "POST", &format!("/dashboards/{did}/widgets"), Some(&t1), Some(serde_json::json!({"kind":"Gauge","pin":"V0","config":"{}"}))).await;
+        assert_eq!(s, StatusCode::CREATED);
+        let wid = w["id"].as_str().unwrap().to_string();
+
+        let (s, _) = call(&a, "GET", &format!("/dashboards/{did}/widgets"), Some(&t2), None).await;
+        assert_eq!(s, StatusCode::NOT_FOUND);
+        let (s, _) = call(&a, "PUT", &format!("/dashboards/{did}/widgets/{wid}"), Some(&t2), Some(serde_json::json!({"pin":"V1"}))).await;
+        assert_eq!(s, StatusCode::NOT_FOUND);
+        let (s, _) = call(&a, "DELETE", &format!("/dashboards/{did}/widgets/{wid}"), Some(&t2), None).await;
+        assert_eq!(s, StatusCode::NOT_FOUND);
+
+        let (s, _) = call(&a, "PUT", &format!("/dashboards/{did}/widgets/{wid}"), Some(&t1), Some(serde_json::json!({"pin":"V1","config":"{\"max\":100}"}))).await;
+        assert_eq!(s, StatusCode::OK);
+        let (s, list) = call(&a, "GET", &format!("/dashboards/{did}/widgets"), Some(&t1), None).await;
+        assert_eq!(s, StatusCode::OK);
+        assert_eq!(list.as_array().unwrap().len(), 1);
+        assert_eq!(list[0]["pin"], "V1");
+        assert_eq!(list[0]["kind"], "Gauge");
+
+        let (s, _) = call(&a, "DELETE", &format!("/dashboards/{did}/widgets/{wid}"), Some(&t1), None).await;
+        assert_eq!(s, StatusCode::OK);
+        let (s, list) = call(&a, "GET", &format!("/dashboards/{did}/widgets"), Some(&t1), None).await;
+        assert_eq!(s, StatusCode::OK);
+        assert!(list.as_array().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn dashboard_update_delete_enforce_ownership() {
+        let a = app().await;
+        let (t1, t2) = (authed(&a, "o1@x.co").await, authed(&a, "o2@x.co").await);
+        let (_, db) = call(&a, "POST", "/dashboards", Some(&t1), Some(serde_json::json!({"name":"d1"}))).await;
+        let did = db["id"].as_str().unwrap();
+        let (s, _) = call(&a, "PUT", &format!("/dashboards/{did}"), Some(&t2), Some(serde_json::json!({"name":"x"}))).await;
+        assert_eq!(s, StatusCode::NOT_FOUND);
+        let (s, _) = call(&a, "DELETE", &format!("/dashboards/{did}"), Some(&t2), None).await;
+        assert_eq!(s, StatusCode::NOT_FOUND);
+        let (s, _) = call(&a, "PUT", &format!("/dashboards/{did}"), Some(&t1), Some(serde_json::json!({"name":"baru"}))).await;
+        assert_eq!(s, StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn widget_config_must_be_json_and_capped() {
+        let a = app().await;
+        let t = authed(&a, "v@x.co").await;
+        let (_, db) = call(&a, "POST", "/dashboards", Some(&t), Some(serde_json::json!({"name":"d1"}))).await;
+        let did = db["id"].as_str().unwrap().to_string();
+        let url = format!("/dashboards/{did}/widgets");
+        let (s, _) = call(&a, "POST", &url, Some(&t), Some(serde_json::json!({"kind":"Gauge","pin":"V0","config":"bukan-json"}))).await;
+        assert_eq!(s, StatusCode::BAD_REQUEST);
+        let big = "x".repeat(65537);
+        let (s, _) = call(&a, "POST", &url, Some(&t), Some(serde_json::json!({"kind":"html","pin":"","config": big}))).await;
+        assert_eq!(s, StatusCode::BAD_REQUEST);
+        let ok_cfg = serde_json::json!({"kind":"html","pin":"","config":"{\"a\":1}"});
+        let (s, _) = call(&a, "POST", &url, Some(&t), Some(ok_cfg)).await;
+        assert_eq!(s, StatusCode::CREATED);
     }
 
     #[tokio::test]
