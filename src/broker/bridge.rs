@@ -86,40 +86,109 @@ pub async fn run_bridge_loop(
     bus: PinBus,
     cmds: Arc<CommandBus>,
     mut link_tx: LinkTx,
-    mut link_rx: LinkRx,
+    link_rx: LinkRx,
+    presence: Presence,
 ) {
     let _ = link_tx.subscribe("volta/#");
     let mut cmd_rx = cmds.subscribe();
+    tokio::select! {
+        _ = forward_loop(db, bus, link_rx, presence) => {}
+        _ = async {
+            while let Ok(req) = cmd_rx.recv().await {
+                let _ = link_tx.publish(cmd_topic(&req), req.value);
+            }
+        } => {}
+    }
+}
+
+async fn forward_loop(db: Arc<SqliteStorage>, bus: PinBus, mut link_rx: LinkRx, presence: Presence) {
     loop {
-        tokio::select! {
-            res = link_rx.next() => {
-                let Some(notif) = res.unwrap_or(None) else { break };
-                if let Notification::Forward(f) = notif {
-                    handle_forward(&db, &bus, &f.publish.topic, &f.publish.payload).await;
-                }
-            }
-            res = cmd_rx.recv() => {
-                if let Ok(req) = res {
-                    let _ = link_tx.publish(cmd_topic(&req), req.value);
-                }
-            }
+        let next = link_rx.next().await;
+        let Ok(Some(notif)) = next else { break };
+        if let Notification::Forward(f) = notif {
+            handle_forward(&db, &bus, &presence, &f.publish.topic, &f.publish.payload).await;
         }
     }
 }
 
-async fn handle_forward(db: &Arc<SqliteStorage>, bus: &PinBus, topic: &[u8], payload: &[u8]) {
+async fn handle_forward(db: &Arc<SqliteStorage>, bus: &PinBus, presence: &Presence, topic: &[u8], payload: &[u8]) {
     let Ok(topic) = std::str::from_utf8(topic) else { return };
     let Ok(payload) = std::str::from_utf8(payload) else { return };
     match super::parse_topic(topic) {
         Some(super::Topic::State { device, .. }) | Some(super::Topic::Log { device }) => {
             let _ = crate::pins::state::handle_publish(db, bus, &device, topic, payload).await;
+            let _ = db.set_status(&device, true, crate::storage::now_unix()).await;
+            presence.touch(&device);
         }
         Some(super::Topic::Status { device }) => {
-            let _ = db
-                .set_status(&device, status_is_online(payload.as_bytes()), crate::storage::now_unix())
-                .await;
+            let online = status_is_online(payload.as_bytes());
+            let _ = db.set_status(&device, online, crate::storage::now_unix()).await;
+            if online {
+                presence.touch(&device);
+            } else {
+                presence.forget(&device);
+            }
         }
         _ => {}
+    }
+}
+
+#[derive(Clone)]
+pub struct Presence {
+    seen: Arc<std::sync::Mutex<HashMap<String, std::time::Instant>>>,
+    offline_after: Duration,
+}
+
+impl Presence {
+    pub fn new(offline_after: Duration) -> Self {
+        Self {
+            seen: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            offline_after,
+        }
+    }
+
+    fn touch(&self, device: &str) {
+        if let Ok(mut seen) = self.seen.lock() {
+            seen.insert(device.to_string(), std::time::Instant::now());
+        }
+    }
+
+    fn forget(&self, device: &str) {
+        if let Ok(mut seen) = self.seen.lock() {
+            seen.remove(device);
+        }
+    }
+
+    async fn sweep_once(&self, db: &SqliteStorage) {
+        let silent: Vec<String> = self
+            .seen
+            .lock()
+            .map(|seen| {
+                seen.iter()
+                    .filter(|(_, at)| at.elapsed() > self.offline_after)
+                    .map(|(d, _)| d.clone())
+                    .collect()
+            })
+            .unwrap_or_default();
+        for device in silent {
+            let _ = db.set_status(&device, false, crate::storage::now_unix()).await;
+            self.forget(&device);
+        }
+    }
+}
+
+pub async fn run_sweeper(db: Arc<SqliteStorage>, presence: Presence) {
+    let tick_secs = (presence.offline_after.as_secs() / 3).clamp(1, 15);
+    let mut tick = tokio::time::interval(Duration::from_secs(tick_secs));
+    loop {
+        tick.tick().await;
+        presence.sweep_once(&db).await;
+    }
+}
+
+pub async fn reset_stale_presence(db: &SqliteStorage) {
+    for stale in db.list_online_device_ids().await.unwrap_or_default() {
+        let _ = db.set_status(&stale, false, crate::storage::now_unix()).await;
     }
 }
 
@@ -130,6 +199,11 @@ pub async fn run_bridge(
     port: u16,
     cache: TokenCache,
 ) {
+    reset_stale_presence(&db).await;
+    let presence = Presence::new(Duration::from_secs(90));    {
+        let db = db.clone();
+        tokio::spawn(run_sweeper(db, presence.clone()));
+    }
     {
         let db = db.clone();
         let cache = cache.clone();
@@ -155,7 +229,7 @@ pub async fn run_bridge(
             }
         };
         tracing::info!(port, "mqtt broker jalan");
-        run_bridge_loop(db.clone(), bus.clone(), cmds.clone(), link_tx, link_rx).await;
+        run_bridge_loop(db.clone(), bus.clone(), cmds.clone(), link_tx, link_rx, presence.clone()).await;
         tracing::error!("mqtt bridge berhenti, coba lagi 5 dtk");
         tokio::time::sleep(Duration::from_secs(5)).await;
     }
@@ -282,7 +356,7 @@ mod tests {
         let bus2 = bus.clone();
         let cmds2 = cmds.clone();
         tokio::spawn(async move {
-            run_bridge_loop(db2, bus2, cmds2, link_tx, link_rx).await;
+            run_bridge_loop(db2, bus2, cmds2, link_tx, link_rx, Presence::new(Duration::from_secs(90))).await;
         });
         tokio::time::sleep(Duration::from_millis(500)).await;
 
@@ -364,5 +438,83 @@ mod tests {
             tokio::time::sleep(Duration::from_millis(100)).await;
         }
         assert!(off, "status offline tidak tercatat");
+    }
+
+    #[tokio::test]
+    async fn reset_stale_presence_clears_online() {
+        let db = crate::storage::sqlite::SqliteStorage::new(":memory:", 5000)
+            .await
+            .unwrap();
+        let now = crate::storage::now_unix();
+        db.create_user("u1", "a@b.c", "h", now).await.unwrap();
+        db.create_device("d1", "u1", "esp", now).await.unwrap();
+        db.set_status("d1", true, now).await.unwrap();
+        assert_eq!(db.list_online_device_ids().await.unwrap().len(), 1);
+        reset_stale_presence(&db).await;
+        assert!(db.list_online_device_ids().await.unwrap().is_empty());
+        assert_eq!(db.get_status("d1").await.unwrap().unwrap().online, 0);
+    }
+
+    #[tokio::test]
+    async fn presence_sweeper_marks_silent_offline() {
+        let db = Arc::new(
+            crate::storage::sqlite::SqliteStorage::new(":memory:", 5000)
+                .await
+                .unwrap(),
+        );
+        let now = crate::storage::now_unix();
+        db.create_user("u1", "a@b.c", "h", now).await.unwrap();
+        db.create_device("d1", "u1", "esp", now).await.unwrap();
+        db.issue_token(&"k".repeat(32), "d1", now).await.unwrap();
+        let cache = new_token_cache();
+        cache.write().unwrap().insert("k".repeat(32));
+        let (link_tx, link_rx) = start_broker(build_broker_config(19884, cache)).unwrap();
+        let bus = PinBus::default();
+        let cmds = Arc::new(CommandBus::new(16));
+        let presence = Presence::new(Duration::from_secs(2));
+        let db2 = db.clone();
+        let bus2 = bus.clone();
+        let cmds2 = cmds.clone();
+        let p2 = presence.clone();
+        tokio::spawn(async move {
+            run_bridge_loop(db2, bus2, cmds2, link_tx, link_rx, p2).await;
+        });
+        tokio::spawn(run_sweeper(db.clone(), presence.clone()));
+        tokio::time::sleep(Duration::from_millis(500)).await;
+
+        let mut ok = tokio::net::TcpStream::connect("127.0.0.1:19884").await.unwrap();
+        {
+            use tokio::io::AsyncWriteExt;
+            ok.write_all(&mqtt_connect("dev1", &"k".repeat(32), &"k".repeat(32)))
+                .await
+                .unwrap();
+        }
+        assert_eq!(read_exact(&mut ok, 4, "connack").await, vec![0x20, 0x02, 0x00, 0x00]);
+        {
+            use tokio::io::AsyncWriteExt;
+            ok.write_all(&mqtt_publish("volta/dev/d1/state/V0", b"1")).await.unwrap();
+        }
+        let mut online = false;
+        for _ in 0..50 {
+            if let Ok(Some(s)) = db.get_status("d1").await {
+                if s.online == 1 {
+                    online = true;
+                    break;
+                }
+            }
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+        assert!(online, "state tidak menandai online");
+        let mut off = false;
+        for _ in 0..60 {
+            if let Ok(Some(s)) = db.get_status("d1").await {
+                if s.online == 0 {
+                    off = true;
+                    break;
+                }
+            }
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+        assert!(off, "perangkat diam tidak ditandai offline");
     }
 }

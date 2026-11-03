@@ -84,6 +84,10 @@ impl Storage for SqliteStorage {
         let rows: Vec<(String,)> = sqlx::query_as("SELECT token FROM device_tokens WHERE revoked=0").fetch_all(&self.pool).await?;
         Ok(rows.into_iter().map(|r| r.0).collect())
     }
+    async fn list_online_device_ids(&self) -> Result<Vec<String>, sqlx::Error> {
+        let rows: Vec<(String,)> = sqlx::query_as("SELECT device_id FROM device_status WHERE online!=0").fetch_all(&self.pool).await?;
+        Ok(rows.into_iter().map(|r| r.0).collect())
+    }
     async fn upsert_pin(&self, device_id: &str, pin: &str, value: &str, now: i64) -> Result<(), sqlx::Error> {
         sqlx::query("INSERT INTO pin_state(device_id,pin,value,updated_at) VALUES(?,?,?,?) ON CONFLICT(device_id,pin) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at")
             .bind(device_id).bind(pin).bind(value).bind(now)
@@ -214,6 +218,10 @@ mod tests {
         s.issue_token(&"b".repeat(32), "d1", now).await.unwrap();
         s.revoke_token(&"a".repeat(32)).await.unwrap();
         assert_eq!(s.list_valid_tokens().await.unwrap(), vec!["b".repeat(32)]);
+        let online = s.list_online_device_ids().await.unwrap();
+        assert!(online.is_empty());
+        s.set_status("d1", true, now).await.unwrap();
+        assert_eq!(s.list_online_device_ids().await.unwrap(), vec!["d1".to_string()]);
     }
 
     #[tokio::test]
