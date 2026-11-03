@@ -1,8 +1,8 @@
 #define MQTT_MAX_PACKET_SIZE 1024
 #include <VoltaESP32.h>
 
-#define WIFI_SSID "NAMA-WIFI"
-#define WIFI_PASS "ISI-PASSWORD"
+#define WIFI_SSID "ol"
+#define WIFI_PASS ""
 #define DEVICE_ID "ISI-DEVICE-ID"
 #define DEVICE_TOKEN "ISI-TOKEN-32-KARAKTER"
 #define MQTT_HOST "ISI-IP-BROKER"

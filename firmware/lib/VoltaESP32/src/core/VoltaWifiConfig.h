@@ -11,7 +11,9 @@ class VoltaWifiConfig {
     String p = prefs_.getString("pass", "");
     mqtt_ = prefs_.getString("mqtt", "");
     prefs_.end();
-    if (s.length() > 0 && p.length() > 0) {
+    if (s.length() == 0) {
+      stored_ = false;
+    } else {
       ssid_ = s;
       pass_ = p;
       stored_ = true;
@@ -42,16 +44,20 @@ class VoltaWifiConfig {
  private:
   bool handle(const String& line) {
     if (line.startsWith("WIFI ")) {
-      int sp = line.indexOf(' ', 5);
+      String rest = line.substring(5);
+      rest.trim();
+      int sp = rest.indexOf(' ');
+      String s, p;
       if (sp < 0) {
-        Serial.println(F("pakai: WIFI <ssid> <password>"));
-        return false;
+        s = rest;
+        p = "";
+      } else {
+        s = rest.substring(0, sp);
+        p = rest.substring(sp + 1);
+        p.trim();
       }
-      String s = line.substring(5, sp);
-      String p = line.substring(sp + 1);
-      p.trim();
-      if (s.length() == 0 || p.length() == 0) {
-        Serial.println(F("ssid dan password tidak boleh kosong"));
+      if (s.length() == 0) {
+        Serial.println(F("pakai: WIFI <ssid> [password]"));
         return false;
       }
       if (!prefs_.begin("volta", false)) {
@@ -115,7 +121,7 @@ class VoltaWifiConfig {
       Serial.println(F("terhapus, kembali ke bawaan. restart..."));
       return true;
     }
-    Serial.println(F("perintah: WIFI <ssid> <password> | MQTT <host> | SHOW | FORGET"));
+    Serial.println(F("perintah: WIFI <ssid> [password] | MQTT <host> | SHOW | FORGET"));
     return false;
   }
 
