@@ -1,11 +1,11 @@
 #define MQTT_MAX_PACKET_SIZE 1024
 #include <VoltaESP32.h>
 
-#define WIFI_SSID "nama-wifi"
-#define WIFI_PASS "kata-sandi"
-#define DEVICE_ID "ganti-dengan-id"
-#define DEVICE_TOKEN "ganti-dengan-token-32-karakter"
-#define MQTT_HOST "192.168.1.10"
+#define WIFI_SSID "NAMA-WIFI"
+#define WIFI_PASS "ISI-PASSWORD"
+#define DEVICE_ID "ISI-DEVICE-ID"
+#define DEVICE_TOKEN "ISI-TOKEN-32-KARAKTER"
+#define MQTT_HOST "ISI-IP-BROKER"
 
 VoltaDevice dev(DEVICE_ID, DEVICE_TOKEN, MQTT_HOST, 1883);
 VoltaAnalog temp(32);
