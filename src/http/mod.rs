@@ -280,6 +280,13 @@ async fn ota_stop(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): 
     Ok(Json(serde_json::json!({"ok": true})))
 }
 
+async fn favicon() -> impl IntoResponse {
+    (
+        [(axum::http::header::CONTENT_TYPE, "image/x-icon")],
+        include_bytes!("../../assets/logo/favicon.ico"),
+    )
+}
+
 pub fn router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/auth/register", post(register))
@@ -297,6 +304,7 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/admin/stats", get(admin_stats))
         .route("/devices/:id/ota/start", post(ota_start))
         .route("/devices/:id/ota/stop", post(ota_stop))
+        .route("/favicon.ico", get(favicon))
         .with_state(state)
 }
 
@@ -327,5 +335,13 @@ mod tests {
         let a = app().await;
         let r = a.oneshot(Request::builder().uri("/devices").body(Body::empty()).unwrap()).await.unwrap();
         assert_eq!(r.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn favicon_served() {
+        let a = app().await;
+        let r = a.oneshot(Request::builder().uri("/favicon.ico").body(Body::empty()).unwrap()).await.unwrap();
+        assert_eq!(r.status(), StatusCode::OK);
+        assert_eq!(r.headers()["content-type"], "image/x-icon");
     }
 }
