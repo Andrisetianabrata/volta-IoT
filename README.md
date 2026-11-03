@@ -52,6 +52,16 @@ cargo build --release
 
 Port yang direncanakan: 8883 MQTT TLS, 1883 MQTT lokal, 9443 HTTPS app.
 
+## Benchmark
+
+Ukur request per menit ke endpoint HTTP (default `/healthz`):
+
+```sh
+cargo run --bin bench -- --host 127.0.0.1 --port 9443 --duration-secs 60 --concurrency 10
+```
+
+Contoh output: `total 120000 | gagal 0 | 60.1 dtk | 119800 req/menit (1997 req/detik)`.
+
 ## Mailer
 
 Config `mailer.toml` di folder data:

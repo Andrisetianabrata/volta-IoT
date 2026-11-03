@@ -1,6 +1,7 @@
 # VOLTA. 0.1.0
 
 ## Added
+- Benchmark: biner `bench` + modul `src/bench.rs`, hitung request per menit (koneksi keep-alive, multi-koneksi)
 - Logo: aset kanonis di `assets/logo/`, banner ASCII di CLI (start + `--help`), seksi panduan di README
 - Task 1: scaffolding crate, config TOML, CLI `--data-folder`/`--dataFolder`, tracing stdout+file
 - Task 2: SQLite WAL + busy timeout, migrasi 9 tabel, trait Storage, stub Postgres

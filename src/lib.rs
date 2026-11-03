@@ -1,5 +1,6 @@
 pub mod acme;
 pub mod auth;
+pub mod bench;
 pub mod broker;
 pub mod cli;
 pub mod config;
