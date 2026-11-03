@@ -200,7 +200,7 @@ pub async fn run_bridge(
     cache: TokenCache,
 ) {
     reset_stale_presence(&db).await;
-    let presence = Presence::new(Duration::from_secs(90));    {
+    let presence = Presence::new(Duration::from_secs(30));    {
         let db = db.clone();
         tokio::spawn(run_sweeper(db, presence.clone()));
     }
