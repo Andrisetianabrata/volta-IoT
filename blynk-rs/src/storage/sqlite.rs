@@ -13,7 +13,7 @@ impl SqliteStorage {
         let url = if db_path == ":memory:" {
             "sqlite::memory:".to_string()
         } else {
-            format!("sqlite://{db_path}?create_if_missing=true")
+            format!("sqlite://{db_path}")
         };
         let mut opts = SqliteConnectOptions::from_str(&url)?
             .journal_mode(SqliteJournalMode::Wal)
