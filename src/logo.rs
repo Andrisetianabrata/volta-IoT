@@ -1,8 +1,9 @@
+// Skala 12:1 dari master (kotak 96, celah 24, lubang 48) disesuaikan sel terminal 1:2.
 pub const BANNER: &str = concat!(
-    "████  ████\n",
-    "████  █  █  VOLTA.\n",
-    "████  █  █  MQTT-only IoT server\n",
-    "████  ████",
+    "████████  ████████\n",
+    "████████  ██    ██  VOLTA.\n",
+    "████████  ██    ██  MQTT-only IoT server\n",
+    "████████  ████████",
 );
 
 #[cfg(test)]
@@ -26,9 +27,9 @@ mod tests {
     #[test]
     fn banner_shows_solid_and_ring() {
         let rows: Vec<&str> = BANNER.lines().collect();
-        assert!(rows[0].starts_with("████  ████"));
-        assert!(rows[3].starts_with("████  ████"));
-        assert!(rows[1].contains("█  █"));
-        assert!(rows[2].contains("█  █"));
+        assert_eq!(rows[0], "████████  ████████");
+        assert_eq!(rows[3], "████████  ████████");
+        assert!(rows[1].starts_with("████████  ██    ██"));
+        assert!(rows[2].starts_with("████████  ██    ██"));
     }
 }
