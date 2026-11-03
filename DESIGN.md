@@ -105,21 +105,39 @@ Prinsip: gerak menjelaskan, bukan menghias. Target budget JS hero
 
 | Kebutuhan | Pilihan | Alasan |
 |---|---|---|
-| Kanvas hero WebGL (latar medan sinyal Bit-Pair yang merespons scroll) | **`ogl`** (±14 KB) | Satu-satunya lib 3D; cukup untuk shader kustom + DPR/resize handling. three.js/react-three-fiber ditolak: >500 KB untuk latar |
-| Scroll halus agar scrub terasa premium | **`lenis`** (±10 KB), progressive enhancement | Nonaktifkan saat reduced-motion / `Save-Data` |
-| Reveal section, hover, mikro-interaksi | Hook `useReveal` sendiri (IntersectionObserver, ±30 baris) | `framer-motion` ditolak: ~100 KB untuk animasi yang bisa dicapai dengan IO + transisi CSS |
+| Kanvas hero WebGL (latar medan sinyal Bit-Pair yang merespons scroll) | **`ogl`** (paket `ogl`, tanpa post-processing) | Satu-satunya lib 3D; cukup untuk shader kustom + DPR/resize handling. three.js/react-three-fiber ditolak: ratusan KB untuk latar |
+| Scroll halus agar scrub terasa premium | **`lenis`** (paket `lenis`, `autoRaf: true`), progressive enhancement | Jangan matikan manual saat reduced-motion: bawaan lenis sudah menonaktifkan smoothing-nya sendiri (`respectReducedMotion` default true — jangan ubah); `Save-Data` tetap menonaktifkan total |
+| Reveal section, hover, mikro-interaksi | Hook `useReveal` sendiri (IntersectionObserver, ±30 baris) | `framer-motion` ditolak: ratusan KB untuk animasi yang bisa dicapai IO + transisi CSS |
 | Grafik pin/history | SVG buatan sendiri (keputusan plan, tidak berubah) | Data renggang: SVG lebih murah dari konteks WebGL per grafik |
 
-Aturan WebGL (mengikat):
-- Satu kanvas, satu shader, tanpa post-processing; DPR dibatasi
-  `min(devicePixelRatio, 1.75)`.
-- Animasi terikat progres scroll (`u_scroll`), bukan waktu semata,
-  agar terasa interaktif, bukan video.
+Budget JS hero < 50 KB gzip **termasuk** ogl+lenis — diverifikasi
+dengan bundle analyzer saat T1, bukan klaim.
+
+Aturan WebGL (mengikat, terverifikasi dari sumber resmi OGL):
+- Satu kanvas, satu shader, `antialias: false`, `alpha: false`
+  (clear color = token ground tema aktif; digambar ulang tiap ganti tema).
+  Tanpa post-processing; DPR dibatasi `min(devicePixelRatio, 1.75)`
+  via opsi konstruktor `new Renderer({ dpr })`, lalu `setSize()` ulang
+  tiap resize dan tiap ganti tema.
+- Animasi terikat progres scroll (uniform `u_scroll`, di-update per
+  frame dari nilai lenis) bukan waktu semata, agar terasa interaktif,
+  bukan video.
 - Pause saat kanvas di luar viewport (`IntersectionObserver`),
   saat tab tersembunyi, dan saat `prefers-reduced-motion`
   (tampilkan frame statis/poster sebagai fallback).
+- Cleanup saat unmount wajib (StrictMode me-mount dua kali):
+  `cancelAnimationFrame`, `program.remove()`, hapus kanvas dari DOM.
 - Seluruh konten tetap terbaca tanpa WebGL (kanvas dekoratif murni,
   `aria-hidden`, teks di atasnya HTML biasa).
+
+Aturan Lenis (terverifikasi dari sumber resmi):
+- Wajib sertakan CSS resmi lenis (`lenis/dist/lenis.css`) agar tidak
+  ada overflow/clipping aneh.
+- `syncTouch` bawaan mati = sentuhan pakai scroll native (bagus untuk
+  HP, jangan dinyalakan kecuali ada alasan tertulis).
+- Jangan set `respectReducedMotion: false`; baca
+  `lenis.prefersReducedMotion` untuk menghentikan scrub WebGL kita
+  sendiri.
 
 Gerak UI: reveal `translateY(18px) + opacity`, sekali jalan
 (`once: true`), stagger ≤ 90 ms; hover hanya perubahan warna/border
@@ -144,7 +162,9 @@ Aturannya satu arah aliran — **token → utility → komponen** —
 ditegakkan oleh cascade layer bawaan Tailwind v4 (jangan dilawan):
 
 Urutan layer (rendah → tinggi, yang kanan menang bila selektor setara):
-`theme → base → components → utilities`. Karena itu:
+`theme → base → components → utilities` (urutan bawaan Tailwind v4,
+terverifikasi di dokumentasi resmi — jangan dilawan, jangan disusun
+ulang). Karena itu:
 
 1. **Token hanya di `@theme`** (`webapp/app/globals.css`): warna,
    font, `--radius`, breakpoint. Tidak ada token di file lain.
@@ -161,6 +181,9 @@ Urutan layer (rendah → tinggi, yang kanan menang bila selektor setara):
    tanpa warna/radius (hanya transform/opacity).
 6. **Tema**: hanya mengganti nilai variabel di selektor
    `[data-theme]` — tidak ada override per-komponen per-tema.
+   Wajib tambah satu baris ini agar varian `dark:` mengikuti atribut
+   (bawaan v4 mengikuti OS — tanpa baris ini tema manual tidak jalan):
+   `@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));`
    Bila satu kasus butuh beda rupa antar-tema, jadikan token baru.
 
 Uji konflik: `npx tsc`, build Next, lalu inspeksi visual kedua tema —
@@ -191,5 +214,5 @@ lapisan, bukan "tweak CSS".
 Sebelum implementasi T1 webapp, DESIGN.md dianggap final bila:
 - [ ] Setiap token punya pasangan kontras terverifikasi tool.
 - [ ] Radius 2px + pengecualian pill disepakati (atau diubah di sini).
-- [ ] Daftar library final: `ogl`, `lenis`, tanpa framer-motion.
+- [ ] Daftar library final: `ogl`, `lenis` (paket `lenis`, `autoRaf: true`, CSS resmi diimpor), tanpa framer-motion.
 - [ ] Tidak ada bagian yang bergantung pada gambar/foto yang belum ada.
