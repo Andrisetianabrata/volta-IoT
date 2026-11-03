@@ -118,6 +118,30 @@ flowchart TD
 | Health | Broker, db, mailer, statistik (sumber sama dengan strip Monitor) | Strip di Monitor memakai sumber data yang sama |
 | Settings | Tema gelap/terang, akun + keluar, info server, status WS + sambung ulang | Dibuka dari rail/bottom-bar; tidak memutus pantauan |
 
+## Peta fitur & sub-fitur
+
+Semua kotak berstatus **Direncanakan** (0 selesai). Angka `0/N` = jumlah
+sub-fitur selesai per fitur; diperbarui tiap checkpoint.
+
+```mermaid
+flowchart LR
+    ROOT(["VOLTA. Webapp"])
+    ROOT --> F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8 & F9
+    F1["Autentikasi · 0/5"] --> S1["Login<br/>Daftar akun<br/>Error validasi<br/>Keluar<br/>Ingat sesi"]
+    F2["Monitor · 0/6"] --> S2["Strip kesehatan<br/>Pin live<br/>Grafik history<br/>Feed event<br/>Kirim perintah<br/>Pilih device"]
+    F3["Devices · 0/3"] --> S3["Daftar + status<br/>Detail device<br/>Hapus device"]
+    F4["Provision · 0/2"] --> S4["Form buat device<br/>Token sekali tampil + salin"]
+    F5["Dashboards · 0/3"] --> S5["Daftar dashboard<br/>Kanvas dinamis<br/>Editor visual"]
+    F6["Health · 0/2"] --> S6["Broker/db/mailer<br/>Statistik admin"]
+    F7["Settings · 0/4"] --> S7["Tema gelap/terang<br/>Akun + keluar<br/>Info server<br/>Status WS + sambung ulang"]
+    F8["Widget HTML · 0/3"] --> S8["Render sandbox<br/>Bridge postMessage<br/>Batas 64 KB"]
+    F9["SaaS · 0/3"] --> S9["Link berbagi read-only<br/>Branding per user<br/>Mode viewer"]
+```
+
+Pemetaan ke task: Auth→W2 · Monitor→W3–W6 · Devices→W4+W8 ·
+Provision→W7 · Dashboards→W10+W12 · Health→W3 · Settings→W14 ·
+Widget HTML→W11 · SaaS→S5–S7+W13.
+
 ## Task List
 
 ### Fase 0 — Fondasi
