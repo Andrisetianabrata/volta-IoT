@@ -6,6 +6,7 @@
 #include "core/VoltaLogger.h"
 #include "core/VoltaPinMap.h"
 #include "core/VoltaTask.h"
+#include "core/VoltaWifiConfig.h"
 #include "io/VoltaAnalog.h"
 #include "io/VoltaLed.h"
 #include "io/VoltaRelay.h"

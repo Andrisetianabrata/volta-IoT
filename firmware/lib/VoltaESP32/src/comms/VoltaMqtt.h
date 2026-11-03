@@ -26,6 +26,10 @@ class VoltaMqtt {
   }
 
   void setHandler(Handler h) { handler_ = h; }
+  void setServer(const char* host, uint16_t port) {
+    broker_ = host;
+    port_ = port;
+  }
 
   void begin() {
     client_.setServer(broker_, port_);

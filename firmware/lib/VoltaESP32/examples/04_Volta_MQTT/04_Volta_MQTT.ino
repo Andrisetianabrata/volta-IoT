@@ -33,6 +33,9 @@ static void publish() {
 
 VoltaTask pubTask(publish, 5000, "publish");
 
+VoltaWifiConfig wificfg;
+unsigned long restartAt = 0;
+
 static void report() {
   Serial.print(F("[net] "));
   Serial.print(VoltaDevice::wifiStatusText());
@@ -55,14 +58,19 @@ void setup() {
   Serial.println(WIFI_SSID);
   Serial.print(F("broker="));
   Serial.println(MQTT_HOST);
+  Serial.println(F("kirim WIFI <ssid> <password> via Serial untuk ganti kredensial"));
+  wificfg.begin();
+  if (wificfg.mqtt()) dev.setBroker(wificfg.mqtt());
   led.begin();
   temp.begin();
-  dev.setWifi(WIFI_SSID, WIFI_PASS);
+  dev.setWifi(wificfg.ssid() ? wificfg.ssid() : WIFI_SSID, wificfg.pass() ? wificfg.pass() : WIFI_PASS);
   dev.onCommand(onCmd);
   dev.begin();
 }
 
 void loop() {
+  if (wificfg.pollSerial()) restartAt = millis() + 500;
+  if (restartAt && (long)(millis() - restartAt) >= 0) ESP.restart();
   dev.update();
   pubTask.update();
   reportTask.update();

@@ -22,6 +22,7 @@ class VoltaDevice {
   }
 
   void onCommand(CommandHandler h) { handler_ = h; }
+  void setBroker(const char* host, uint16_t port = 1883) { mqtt_.setServer(host, port); }
 
   void begin() {
     WiFi.mode(WIFI_STA);
