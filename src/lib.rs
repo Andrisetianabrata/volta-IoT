@@ -4,6 +4,7 @@ pub mod broker;
 pub mod cli;
 pub mod config;
 pub mod http;
+pub mod logo;
 pub mod mailer;
 pub mod ota;
 pub mod pins;

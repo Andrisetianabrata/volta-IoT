@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::Parser;
 
 #[derive(Parser, Debug, Clone)]
-#[command(name = "volta", version, about = "VOLTA. MQTT-only IoT server")]
+#[command(name = "volta", version, about = "VOLTA. MQTT-only IoT server", long_about = crate::logo::BANNER)]
 pub struct Args {
     #[arg(long = "data-folder", alias = "dataFolder", default_value = "./data")]
     pub data_folder: PathBuf,

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use volta::{cli::Args, config::AppConfig, http, mailer, rule, storage};
+use volta::{cli::Args, config::AppConfig, http, logo, mailer, rule, storage};
 use clap::Parser;
 use tracing_subscriber::{EnvFilter, prelude::*};
 
@@ -26,6 +26,7 @@ fn init_tracing(data_folder: &std::path::Path, log_level: &str) {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
+    println!("{}", logo::BANNER);
     std::fs::create_dir_all(&args.data_folder)?;
     let config = AppConfig::load(&args.resolved_config_path())?;
     init_tracing(&args.data_folder, &config.server.log_level);
