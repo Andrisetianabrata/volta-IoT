@@ -57,6 +57,32 @@ async fn uid(state: &AppState, headers: &HeaderMap) -> Result<String, ApiError> 
 }
 
 #[derive(Deserialize)]
+pub struct StreamQuery {
+    pub token: Option<String>,
+}
+
+fn stream_token(headers: &HeaderMap, q: &StreamQuery) -> Result<String, ApiError> {
+    if let Ok(t) = bearer(headers) {
+        return Ok(t);
+    }
+    q.token
+        .clone()
+        .filter(|t| !t.is_empty())
+        .ok_or_else(|| ApiError::unauthorized("missing bearer"))
+}
+
+async fn uid_for_stream(
+    state: &AppState,
+    headers: &HeaderMap,
+    q: &StreamQuery,
+) -> Result<String, ApiError> {
+    let tok = stream_token(headers, q)?;
+    auth::user_id_for_session(state.db.as_ref(), &tok)
+        .await
+        .map_err(|_| ApiError::unauthorized("invalid session"))
+}
+
+#[derive(Deserialize)]
 pub struct RegisterBody {
     pub email: String,
     pub password: String,
@@ -195,8 +221,8 @@ async fn history(State(s): State<Arc<AppState>>, headers: HeaderMap, Path((id, p
     Ok(Json(rows))
 }
 
-async fn stream(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>, ws: WebSocketUpgrade) -> Result<impl IntoResponse, ApiError> {
-    let u = uid(&s, &headers).await?;
+async fn stream(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>, Query(q): Query<StreamQuery>, ws: WebSocketUpgrade) -> Result<impl IntoResponse, ApiError> {
+    let u = uid_for_stream(&s, &headers, &q).await?;
     let dev = s.db.get_device(&id).await?.ok_or_else(|| ApiError::not_found("device tidak ada"))?;
     if dev.user_id != u {
         return Err(ApiError::not_found("device tidak ada"));
@@ -287,8 +313,29 @@ async fn favicon() -> impl IntoResponse {
     )
 }
 
+async fn device_status(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>) -> Result<impl IntoResponse, ApiError> {
+    let u = uid(&s, &headers).await?;
+    let dev = s.db.get_device(&id).await?.ok_or_else(|| ApiError::not_found("device tidak ada"))?;
+    if dev.user_id != u {
+        return Err(ApiError::not_found("device tidak ada"));
+    }
+    let st = s.db.get_status(&id).await?;
+    Ok(Json(serde_json::json!({
+        "online": st.as_ref().map(|x| x.online != 0).unwrap_or(false),
+        "updated_at": st.map(|x| x.updated_at),
+    })))
+}
+
+async fn dashboard() -> impl IntoResponse {
+    (
+        [(axum::http::header::CONTENT_TYPE, "text/html; charset=utf-8")],
+        include_str!("../../dashboard.html"),
+    )
+}
+
 pub fn router(state: Arc<AppState>) -> Router {
     Router::new()
+        .route("/", get(dashboard))
         .route("/auth/register", post(register))
         .route("/auth/login", post(login))
         .route("/dashboards", get(list_dashboards).post(create_dashboard))
@@ -296,6 +343,7 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/dashboards/:id/widgets", get(list_widgets).post(create_widget))
         .route("/devices", get(list_devices).post(create_device))
         .route("/devices/:id", delete(delete_device))
+        .route("/devices/:id/status", get(device_status))
         .route("/devices/:id/pins", get(list_pins))
         .route("/devices/:id/pins/:pin", get(get_pin).put(put_pin))
         .route("/devices/:id/history/:pin", get(history))
@@ -343,5 +391,53 @@ mod tests {
         let r = a.oneshot(Request::builder().uri("/favicon.ico").body(Body::empty()).unwrap()).await.unwrap();
         assert_eq!(r.status(), StatusCode::OK);
         assert_eq!(r.headers()["content-type"], "image/x-icon");
+    }
+
+    #[tokio::test]
+    async fn dashboard_index_serves_html() {
+        let a = app().await;
+        let r = a.oneshot(Request::builder().uri("/").body(Body::empty()).unwrap()).await.unwrap();
+        assert_eq!(r.status(), StatusCode::OK);
+        assert!(r.headers()["content-type"].to_str().unwrap().starts_with("text/html"));
+        let b = axum::body::to_bytes(r.into_body(), 1024 * 1024).await.unwrap();
+        let s = String::from_utf8(b.to_vec()).unwrap();
+        assert!(s.contains("id=\"canvas\""));
+        assert!(s.contains("VOLTA."));
+    }
+
+    #[tokio::test]
+    async fn stream_token_accepts_query_param() {
+        let q_none = StreamQuery { token: None };
+        assert!(stream_token(&HeaderMap::new(), &q_none).is_err());
+        let q = StreamQuery { token: Some("abc".to_string()) };
+        assert_eq!(stream_token(&HeaderMap::new(), &q).unwrap(), "abc");
+        let mut h = HeaderMap::new();
+        h.insert("authorization", "Bearer hdr".parse().unwrap());
+        let q2 = StreamQuery { token: Some("qry".to_string()) };
+        assert_eq!(stream_token(&h, &q2).unwrap(), "hdr");
+    }
+
+    #[tokio::test]
+    async fn device_status_reports_offline_by_default() {
+        let a = app().await;
+        let reg = Request::builder().uri("/auth/register").method("POST").header("content-type", "application/json").body(Body::from(r#"{"email":"s@x.co","password":"password123"}"#)).unwrap();
+        let r = a.clone().oneshot(reg).await.unwrap();
+        assert_eq!(r.status(), StatusCode::CREATED);
+        let login = Request::builder().uri("/auth/login").method("POST").header("content-type", "application/json").body(Body::from(r#"{"email":"s@x.co","password":"password123"}"#)).unwrap();
+        let r = a.clone().oneshot(login).await.unwrap();
+        let b = axum::body::to_bytes(r.into_body(), 4096).await.unwrap();
+        let tok = serde_json::from_slice::<serde_json::Value>(&b).unwrap()["token"].as_str().unwrap().to_string();
+        let auth = format!("Bearer {tok}");
+        let mk = Request::builder().uri("/devices").method("POST").header("content-type", "application/json").header("authorization", auth.clone()).body(Body::from(r#"{"name":"d1"}"#)).unwrap();
+        let r = a.clone().oneshot(mk).await.unwrap();
+        assert_eq!(r.status(), StatusCode::CREATED);
+        let b = axum::body::to_bytes(r.into_body(), 4096).await.unwrap();
+        let id = serde_json::from_slice::<serde_json::Value>(&b).unwrap()["device_id"].as_str().unwrap().to_string();
+        let st = Request::builder().uri(format!("/devices/{id}/status")).header("authorization", auth).body(Body::empty()).unwrap();
+        let r = a.clone().oneshot(st).await.unwrap();
+        assert_eq!(r.status(), StatusCode::OK);
+        let b = axum::body::to_bytes(r.into_body(), 4096).await.unwrap();
+        let v: serde_json::Value = serde_json::from_slice(&b).unwrap();
+        assert_eq!(v["online"], false);
     }
 }

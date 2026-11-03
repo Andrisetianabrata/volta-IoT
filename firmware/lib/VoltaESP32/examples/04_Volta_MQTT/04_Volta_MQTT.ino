@@ -2,10 +2,13 @@
 #include <VoltaESP32.h>
 
 #define WIFI_SSID "NAMA-WIFI"
-#define WIFI_PASS "ISI-PASSWORD"
+#define WIFI_PASS ""
 #define DEVICE_ID "ISI-DEVICE-ID"
 #define DEVICE_TOKEN "ISI-TOKEN-32-KARAKTER"
 #define MQTT_HOST "ISI-IP-BROKER"
+// Isi kredensial asli via Serial monitor (tersimpan di flash):
+//   WIFI <ssid> [password]
+//   MQTT <ip-broker>
 
 VoltaDevice dev(DEVICE_ID, DEVICE_TOKEN, MQTT_HOST, 1883);
 VoltaAnalog temp(32);
