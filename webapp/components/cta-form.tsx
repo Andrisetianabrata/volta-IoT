@@ -42,7 +42,7 @@ export function CtaForm() {
           </p>
         )}
       </div>
-      <Button type="submit" className="min-h-[44px] bg-[var(--color-accent)] text-[#111111] hover:bg-[var(--color-accent)] hover:opacity-90">
+      <Button type="submit" className="min-h-[44px] bg-[var(--color-accent)] text-[var(--accent-foreground)] hover:bg-[var(--color-accent)] hover:opacity-90">
         Kirim permintaan
       </Button>
     </form>

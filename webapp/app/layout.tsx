@@ -11,7 +11,13 @@ export const metadata: Metadata = {
   title: "VOLTA. Server IoT lokal untuk ESP32",
   description:
     "Server IoT MQTT open source (MIT): pantau pin live, kirim perintah, dan susun dashboard tanpa rilis ulang. Install dalam hitungan menit.",
-  icons: { icon: "/favicon.svg" },
+  icons: {
+    icon: [
+      { url: "/favicon-light.svg", media: "(prefers-color-scheme: light)" },
+      { url: "/favicon-dark.svg", media: "(prefers-color-scheme: dark)" },
+      { url: "/favicon.svg" },
+    ],
+  },
 };
 
 const themeInit = `(function(){try{var s=localStorage.getItem("volta-theme");var t=s||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme="light";}})();`;
@@ -48,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <a href="#faq" className="hidden sm:inline hover:underline underline-offset-4">FAQ</a>
             <a href="#install" className="hidden sm:inline hover:underline underline-offset-4">Install</a>
             <ThemeToggle />
-            <Button asChild className="min-h-[44px] bg-[var(--color-primary)] text-[var(--color-ground)] hover:bg-[var(--color-primary)] hover:opacity-85">
+            <Button asChild className="min-h-[44px] bg-[var(--color-primary)] text-[var(--primary-foreground)] hover:bg-[var(--color-primary)] hover:opacity-85">
               <a href="#install">
                 Install
               </a>

@@ -29,7 +29,7 @@ export function CommandDemo() {
         />
         <Button
           type="button"
-          className="min-h-[44px] shrink-0 bg-[var(--color-primary)] text-[var(--color-ground)] hover:bg-[var(--color-primary)] hover:opacity-85"
+          className="min-h-[44px] shrink-0 bg-[var(--color-primary)] text-[var(--primary-foreground)] hover:bg-[var(--color-primary)] hover:opacity-85"
           onClick={() => {
             if (m) setSent(`Antrian tulis ${m[1].toUpperCase()} = ${m[2]}. Di app, ini terkirim via PUT /pins/${m[1].toUpperCase()}.`);
             else setSent("Format belum dikenal. Pakai pola PIN = angka, contoh V0 = 1820.");

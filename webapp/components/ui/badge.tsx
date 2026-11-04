@@ -11,7 +11,7 @@ const badgeVariants = cva(
       variant: {
         live: "text-[var(--color-text)]",
         stale: "text-[var(--color-muted)]",
-        accent: "bg-[var(--color-accent)] text-[#111111] px-2 py-1",
+        accent: "bg-[var(--color-accent)] text-[var(--accent-foreground)] px-2 py-1",
         neutral: "border border-[var(--color-border)] text-[var(--color-muted)] px-2 py-1",
       },
     },

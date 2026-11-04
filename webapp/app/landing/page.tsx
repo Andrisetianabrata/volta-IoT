@@ -7,6 +7,7 @@ import { PinChart } from "../../components/pin-chart";
 import { niceCeil } from "../../lib/chart-scale";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CodeBlock } from "@/components/ui/code-block";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const faqs = [
@@ -89,7 +90,7 @@ export default function LandingPage() {
           </div>
           <div className="reveal" data-delay="90">
             <div className="border border-[var(--color-border)] bg-[var(--color-raised)] p-3 sm:p-4" style={{ borderRadius: "var(--radius)" }}>
-              <HeroFragment />
+              <HeroFragment chart={{ line: "#C07A24" }} />
             </div>
           </div>
         </div>
@@ -130,7 +131,7 @@ export default function LandingPage() {
               <Badge variant="neutral">maks {niceCeil(1860)}</Badge>
             </div>
             <div className="mt-4">
-              <PinChart data={week} label="Contoh grafik mingguan pin V0" />
+              <PinChart data={week} label="Contoh grafik mingguan pin V0" line="#C07A24" />
             </div>
             <p className="mt-4 text-[15px] font-semibold">Grafik history</p>
             <p className="mt-1 text-[15px] text-[var(--color-muted)]">Satu garis tembaga, tick bulat, rentang 1 jam dan 24 jam.</p>
@@ -213,15 +214,20 @@ export default function LandingPage() {
           <p className="reveal mt-4 max-w-[52ch] text-[16px] text-[var(--color-muted)]">
             Satu biner berisi broker MQTT, HTTP, mailer, dan storage. Tanpa layanan terpisah untuk dijalankan.
           </p>
-          <pre className="reveal tnum mt-8 overflow-x-auto border border-[var(--color-border)] bg-[var(--color-ground)] p-5 font-mono2 text-[14px] leading-relaxed" style={{ borderRadius: "var(--radius)" }}><code>{`git clone https://github.com/Andrisetianabrata/volta-IoT.git
+          <CodeBlock
+            lang="bash"
+            label="bash"
+            className="reveal mt-8"
+            code={`git clone https://github.com/Andrisetianabrata/volta-IoT.git
 cd volta-IoT
 cargo build --release
-./target/release/volta --data-folder ./data`}</code></pre>
+./target/release/volta --data-folder ./data`}
+          />
           <div className="reveal mt-6 flex flex-wrap gap-3">
             <Button asChild variant="outline" className="min-h-[44px]">
               <a href="https://github.com/Andrisetianabrata/volta-IoT" target="_blank" rel="noreferrer">Kloning repo</a>
             </Button>
-            <Button asChild className="min-h-[44px] bg-[var(--color-primary)] text-[var(--color-ground)] hover:bg-[var(--color-primary)] hover:opacity-85">
+            <Button asChild className="min-h-[44px] bg-[var(--color-primary)] text-[var(--primary-foreground)] hover:bg-[var(--color-primary)] hover:opacity-85">
               <a href="https://github.com/Andrisetianabrata/volta-IoT/archive/refs/heads/main.zip">Unduh ZIP</a>
             </Button>
           </div>
@@ -262,7 +268,7 @@ cargo build --release
             <img src="/volta-horizontal.svg" alt="VOLTA" width={280} height={64} className="hidden h-auto w-full max-w-[280px] dark:block" />
             <img src="/volta-horizontal-reversed.svg" alt="" aria-hidden="true" width={280} height={64} className="h-auto w-full max-w-[280px] dark:hidden" />
           </div>
-          <a href="https://github.com/Andrisetianabrata/volta-IoT" target="_blank" rel="noreferrer" className="flex min-h-[140px] flex-col justify-between border p-5 text-[#111111] transition-opacity hover:opacity-90" style={{ background: "var(--color-accent)", borderColor: "var(--color-accent)", borderRadius: "var(--radius)" }}>
+          <a href="https://github.com/Andrisetianabrata/volta-IoT" target="_blank" rel="noreferrer" className="flex min-h-[140px] flex-col justify-between border p-5 text-[var(--accent-foreground)] transition-opacity hover:opacity-90" style={{ background: "var(--color-accent)", borderColor: "var(--color-accent)", borderRadius: "var(--radius)" }}>
             <span className="text-[24px] font-bold leading-tight">Kloning repo</span>
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true" className="self-end">
               <path d="M6 22L22 6M22 6H9M22 6v13" stroke="currentColor" strokeWidth="3" strokeLinecap="square" />

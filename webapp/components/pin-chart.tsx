@@ -28,7 +28,7 @@ function ChartTip({ active, payload, label }: { active?: boolean; payload?: { va
 export function PinChart({
   data,
   label,
-  line = "#C07A24",
+  line,
   grid,
   tick,
 }: {
@@ -63,6 +63,7 @@ export function PinChart({
   }
 
   const dark = theme === "dark";
+  const lineC = line ?? (dark ? "#5B79FF" : "#2038E6");
   const gridC = grid ?? (dark ? "#1C1C1F" : "#EFEBE2");
   const tickC = tick ?? (dark ? "#A8A8AB" : "#5F6368");
   const top = niceCeil(Math.max(...data.map((d) => d.v)));
@@ -72,7 +73,7 @@ export function PinChart({
   return (
     <div role="img" aria-label={label} className="h-[160px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} accessibilityLayer margin={{ top: 8, right: 28, bottom: 0, left: 0 }}>
+        <LineChart data={data} accessibilityLayer={false} margin={{ top: 8, right: 28, bottom: 0, left: 0 }}>
           <CartesianGrid stroke={gridC} vertical={false} />
           <XAxis
             dataKey="t"
@@ -94,10 +95,10 @@ export function PinChart({
           <Line
             type="monotone"
             dataKey="v"
-            stroke={line}
+            stroke={lineC}
             strokeWidth={2}
             dot={false}
-            activeDot={{ r: 4, fill: line, stroke: line }}
+            activeDot={{ r: 4, fill: lineC, stroke: lineC }}
             isAnimationActive={!reduced}
           />
         </LineChart>

@@ -30,7 +30,7 @@
   --color-muted: var(--v-muted);
   --color-faint: var(--v-faint);
   --color-accent: var(--v-accent);
-  --color-accent-ink: var(--v-btn-ink);
+  --color-accent-ink: #111111;
   --color-primary: var(--v-btn);
   --background: var(--v-bg);
   --foreground: var(--v-ink);
@@ -45,7 +45,7 @@
   --muted: var(--v-raised);
   --muted-foreground: var(--v-muted);
   --accent: var(--v-accent);
-  --accent-foreground: var(--v-btn-ink);
+  --accent-foreground: #111111;
   --border: var(--v-border);
   --input: var(--v-border);
   --ring: var(--v-accent);
@@ -64,6 +64,9 @@ html[data-theme="light"] .landing-variant {
   --v-btn: #2038e6;
   --v-btn-ink: #ffffff;
   --v-paper: #131315;
+  --color-accent-ink: #ffffff;
+  --accent-foreground: #ffffff;
+  --primary-foreground: #ffffff;
 }
 
 .landing-variant .font-display-em {

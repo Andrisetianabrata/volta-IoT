@@ -7,6 +7,7 @@ import { PinChart } from "../components/pin-chart";
 import { niceCeil } from "../lib/chart-scale";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CodeBlock } from "@/components/ui/code-block";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 /* Varian referensi /landing: konten sama dengan halaman utama, kulit bebas (di luar DESIGN.md).
@@ -98,9 +99,6 @@ export default function LandingVariantPage() {
         </div>
         <div className="reveal relative order-1 min-w-0 h-[48svh] overflow-hidden border border-[var(--v-border)] lg:order-2 lg:sticky lg:top-4 lg:h-[calc(100svh-2rem)]" style={{ borderRadius: 0 }} data-delay="90">
           <LandingBitfield />
-          <p className="absolute bottom-3 left-4 font-mono2 text-[12px] text-[var(--v-muted)]" style={{ fontFamily: "var(--font-variant)" }}>
-            medan Bit 3D . gerakkan pointer
-          </p>
         </div>
       </section>
 
@@ -121,7 +119,7 @@ export default function LandingVariantPage() {
           </div>
           <div data-ui className="reveal border border-[var(--v-border)] bg-[var(--v-surface)] p-5" style={{ borderRadius: 0 }}>
             <div className="flex items-center justify-between">
-              <p className="text-[13px] text-[var(--v-muted)]">device kebun-01</p>
+              <p className="text-[13px] text-[var(--v-muted)]">device kebun-01 . demo</p>
               <Badge dot={true}>online</Badge>
             </div>
             <ul className="tnum mt-4 font-display-em text-[15px]" style={{ fontWeight: 500, textTransform: "none", letterSpacing: 0 }}>
@@ -138,15 +136,15 @@ export default function LandingVariantPage() {
         <div className="mt-20 grid items-center gap-10 lg:grid-cols-2">
           <div data-ui className="reveal order-2 border border-[var(--v-border)] bg-[var(--v-surface)] p-5 lg:order-1" style={{ borderRadius: 0 }}>
             <div className="flex items-center justify-between">
-              <p className="text-[13px] text-[var(--v-muted)]">V0 . 7 hari</p>
+              <p className="text-[13px] text-[var(--v-muted)]">V0 . 7 hari . demo</p>
               <Badge variant="neutral">maks {niceCeil(1860)}</Badge>
             </div>
             <div className="mt-4">
-              <PinChart data={week} label="Contoh grafik mingguan pin V0" line="#f4d96c" />
+              <PinChart data={week} label="Contoh grafik mingguan pin V0" />
             </div>
           </div>
           <div className="reveal order-1 lg:order-2">
-            <h3 className="font-display-em max-w-[14ch] text-[clamp(28px,3.4vw,44px)]">Grafik satu garis tembaga.</h3>
+            <h3 className="font-display-em max-w-[14ch] text-[clamp(28px,3.4vw,44px)]">Grafik satu garis kobalt.</h3>
             <p className="mt-6 max-w-[44ch] text-[17px] leading-relaxed text-[var(--v-muted)]">
               Tick bulat di atas maksimum, rentang 1 jam dan 24 jam. Hover menampilkan nilai dan waktu.
             </p>
@@ -166,20 +164,19 @@ export default function LandingVariantPage() {
             </p>
           </div>
           <div className="reveal border border-[var(--v-border)] bg-[var(--v-bg)] p-6" style={{ borderRadius: 0 }} data-delay="90">
-            <HeroFragment chart={{ line: "#f4d96c" }} />
+            <HeroFragment />
           </div>
         </div>
       </section>
 
-      {/* CARA KERJA: satu kartu empat bidang */}
+      {/* CARA KERJA: satu kartu tiga bidang */}
       <section id="cara" aria-labelledby="cara-judul" className="mx-auto w-full max-w-7xl px-4 py-24 sm:py-32">
         <h2 id="cara-judul" className="reveal font-display-em max-w-[14ch] text-[clamp(32px,4vw,56px)]">Dari dus sampai live.</h2>
-        <ol className="reveal mt-12 grid gap-px border border-[var(--v-border)] bg-[var(--v-border)] md:grid-cols-4" style={{ borderRadius: 0 }}>
+        <ol className="reveal mt-12 grid gap-px border border-[var(--v-border)] bg-[var(--v-border)] md:grid-cols-3" style={{ borderRadius: 0 }}>
           {[
             ["Langkah 1", "Daftarkan device", "Buat entri di Provision. Catat ID 8 karakter dan token sekali tampil."],
             ["Langkah 2", "Flash firmware", "Tempel token ke konfigurasi ESP32, lalu flash seperti biasa."],
             ["Langkah 3", "Pantau dan tulis", "Pilih device di Monitor. Nilai mengalir live, perintah terkirim via REST."],
-            ["Selalu", "Status jujur", "Offline, basi, dan unreachable selalu tertulis eksplisit. Contoh di halaman ini simulasi demo."],
           ].map(([k, t, d]) => (
             <li key={t} className="bg-[var(--v-bg)] p-6">
               <p className="text-[13px] text-[var(--v-muted)]">{k}</p>
@@ -206,17 +203,22 @@ export default function LandingVariantPage() {
       {/* INSTALL */}
       <section id="install" aria-labelledby="install-judul" className="mx-auto w-full max-w-7xl px-4 pb-24 sm:pb-32">
         <div className="reveal border border-[var(--v-border)] bg-[var(--v-surface)] p-8 sm:p-12" style={{ borderRadius: 0 }}>
-          <Badge dot={true}>sumber terbuka . MIT</Badge>
-          <h2 id="install-judul" className="font-display-em mt-5 max-w-[18ch] text-[clamp(32px,4vw,56px)]">
+          <h2 id="install-judul" className="font-display-em max-w-[18ch] text-[clamp(32px,4vw,56px)]">
             Install dalam hitungan menit.
           </h2>
           <p className="mt-5 max-w-[52ch] text-[17px] leading-relaxed text-[var(--v-muted)]">
             Satu biner berisi broker MQTT, HTTP, mailer, dan storage. Tanpa layanan terpisah untuk dijalankan.
           </p>
-          <pre className="tnum mt-8 overflow-x-auto border border-[var(--v-border)] bg-[var(--v-bg)] p-5 text-[14px] leading-relaxed" style={{ borderRadius: 0 }}><code>{`git clone https://github.com/Andrisetianabrata/volta-IoT.git
+          <CodeBlock
+            lang="bash"
+            label="bash"
+            className="mt-8"
+            style={{ borderRadius: 0 }}
+            code={`git clone https://github.com/Andrisetianabrata/volta-IoT.git
 cd volta-IoT
 cargo build --release
-./target/release/volta --data-folder ./data`}</code></pre>
+./target/release/volta --data-folder ./data`}
+          />
           <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild variant="outline" style={{ borderRadius: 0 }}>
               <a href="https://github.com/Andrisetianabrata/volta-IoT" target="_blank" rel="noreferrer">Kloning repo</a>

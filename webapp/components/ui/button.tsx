@@ -10,8 +10,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-[var(--color-primary)] text-[var(--color-ground)] hover:opacity-85",
-        accent: "border-transparent bg-[var(--color-accent)] text-[#111111] hover:opacity-90",
+        default: "border-transparent bg-[var(--color-primary)] text-[var(--primary-foreground)] hover:opacity-85",
+        accent: "border-transparent bg-[var(--color-accent)] text-[var(--accent-foreground)] hover:opacity-90",
         outline: "border-[var(--color-border)] bg-transparent text-[var(--color-text)] hover:border-[var(--color-accent)]",
         ghost: "border-transparent bg-transparent text-[var(--color-text)] hover:bg-[var(--color-raised)]",
         destructive: "border-transparent bg-[#C4242A] text-white hover:opacity-90 dark:bg-[#E5566F] dark:text-[#101012]",
