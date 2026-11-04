@@ -57,11 +57,29 @@ pub async fn user_id_for_session<S: Storage>(db: &S, session: &str) -> Result<St
     Ok(s.user_id)
 }
 
+/// Akun admin bawaan untuk instalasi baru. Idempoten: tidak diubah bila
+/// email sudah terdaftar. Mengembalikan true bila seed dibuat sekarang.
+pub async fn seed_admin<S: Storage>(db: &S) -> Result<bool, AuthError> {
+    if db.get_user_by_email("admin@admin.com").await?.is_some() {
+        return Ok(false);
+    }
+    register(db, "admin@admin.com", "admin123").await?;
+    Ok(true)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::storage::sqlite::SqliteStorage;
 
     use super::*;
+
+    #[tokio::test]
+    async fn seed_admin_idempotent() {
+        let db = SqliteStorage::new(":memory:", 5000).await.unwrap();
+        assert!(seed_admin(&db).await.unwrap());
+        assert!(!seed_admin(&db).await.unwrap());
+        assert!(login(&db, "admin@admin.com", "admin123").await.is_ok());
+    }
 
     #[tokio::test]
     async fn register_login_roundtrip() {

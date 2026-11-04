@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use volta::{broker, cli::Args, config::AppConfig, http, logo, mailer, rule, storage};
+use volta::{auth, broker, cli::Args, config::AppConfig, http, logo, mailer, rule, seed, storage};
 use clap::Parser;
 use tracing_subscriber::{EnvFilter, prelude::*};
 
@@ -37,6 +37,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let db_path_str = db_path.to_string_lossy().to_string();
     let db = Arc::new(storage::sqlite::SqliteStorage::new(&db_path_str, config.storage.busy_timeout_ms).await?);
+
+    // Seed akun admin bawaan (idempoten, dilewati bila email sudah ada).
+    match auth::seed_admin(db.as_ref()).await {
+        Ok(true) => tracing::info!("seed admin admin@admin.com siap"),
+        Ok(false) => {}
+        Err(e) => tracing::warn!("seed admin gagal: {e}"),
+    }
+
+    // Seed board demo hanya bila diminta eksplisit (pengembangan UI).
+    if std::env::var("VOLTA_SEED_DEMO").as_deref() == Ok("1") {
+        match seed::seed_demo(db.as_ref()).await {
+            Ok(true) => tracing::info!("seed demo: board contoh dibuat"),
+            Ok(false) => {}
+            Err(e) => tracing::warn!("seed demo gagal: {e}"),
+        }
+    }
 
     let mailer_cfg = mailer::MailerConfig::load(&args.data_folder.join("mailer.toml"));
     let state = Arc::new(http::AppState::new(db.clone(), mailer_cfg.clone()));

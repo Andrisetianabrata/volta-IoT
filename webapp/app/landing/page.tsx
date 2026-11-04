@@ -7,7 +7,7 @@ import { PinChart } from "../../components/pin-chart";
 import { niceCeil } from "../../lib/chart-scale";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CodeBlock } from "@/components/ui/code-block";
+import { CodeBlock } from "@/components/code-block";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const faqs = [

@@ -10,5 +10,6 @@ pub mod mailer;
 pub mod ota;
 pub mod pins;
 pub mod rule;
+pub mod seed;
 pub mod stats;
 pub mod storage;

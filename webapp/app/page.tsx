@@ -7,7 +7,8 @@ import { PinChart } from "../components/pin-chart";
 import { niceCeil } from "../lib/chart-scale";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CodeBlock } from "@/components/ui/code-block";
+import { CodeBlock } from "@/components/code-block";
+import { LaptopSection } from "../components/laptop-section";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 /* Varian referensi /landing: konten sama dengan halaman utama, kulit bebas (di luar DESIGN.md).
@@ -168,6 +169,9 @@ export default function LandingVariantPage() {
           </div>
         </div>
       </section>
+
+      {/* SKETCH: laptop 3D + daftar sketch */}
+      <LaptopSection />
 
       {/* CARA KERJA: satu kartu tiga bidang */}
       <section id="cara" aria-labelledby="cara-judul" className="mx-auto w-full max-w-7xl px-4 py-24 sm:py-32">

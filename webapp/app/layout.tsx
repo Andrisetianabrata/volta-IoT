@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import "./variant.css";
 import { SmoothScroll } from "../components/smooth-scroll";
 import { ThemeToggle } from "../components/theme-toggle";
+import { LogoutButton } from "../components/login-form";
+import { sessionToken } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { display, mono, jost } from "./fonts";
@@ -22,7 +25,15 @@ export const metadata: Metadata = {
 
 const themeInit = `(function(){try{var s=localStorage.getItem("volta-theme");var t=s||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme="light";}})();`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const sesi = await sessionToken();
+  const pathname = (await headers()).get("x-pathname") ?? "/";
+  const inApp =
+    pathname.startsWith("/monitor") ||
+    pathname.startsWith("/devices") ||
+    pathname.startsWith("/dashboards") ||
+    pathname.startsWith("/health") ||
+    pathname.startsWith("/settings");
   return (
     <html lang="id" data-theme="light" className={cn(display.variable, mono.variable, jost.variable)} suppressHydrationWarning>
       <head>
@@ -36,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Lewati ke konten
         </a>
+        {!inApp && (
         <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <a href="#atas" className="flex items-center gap-2" aria-label="VOLTA beranda">
             <img src="/volta-horizontal.svg" alt="VOLTA" width={120} height={28} className="block dark:hidden" />
@@ -54,6 +66,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <a href="#faq" className="hidden sm:inline hover:underline underline-offset-4">FAQ</a>
             <a href="#install" className="hidden sm:inline hover:underline underline-offset-4">Install</a>
             <ThemeToggle />
+            {sesi ? (
+              <LogoutButton />
+            ) : (
+              <Button asChild variant="outline" className="min-h-[44px]">
+                <a href="/login">Masuk</a>
+              </Button>
+            )}
             <Button asChild className="min-h-[44px] bg-[var(--color-primary)] text-[var(--primary-foreground)] hover:bg-[var(--color-primary)] hover:opacity-85">
               <a href="#install">
                 Install
@@ -61,6 +80,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Button>
           </nav>
         </header>
+        )}
         <main id="konten">{children}</main>
       </body>
     </html>

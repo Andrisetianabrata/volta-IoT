@@ -29,6 +29,11 @@ milik server Rust (selesai 100%). Task webapp hidup di file ini dan
   (button, input, select, table, tabs, switch) tapi seluruh token
   diganti ke sistem desain dealt (di bawah). Alasan: aksesibilitas +
   perilaku bawaan shadcn, tanpa rupa default shadcn.
+  Aturan pemilik (mengikat): primitif di `components/ui/` wajib dipasang
+  via `npx shadcn@latest add`, dilarang tulis tangan; hasil install
+  wajib diretokens ke `DESIGN.md` (palet, radius, Jost), dilarang mentah
+  atau default shadcn. Komponen domain/proyek (`widgets/`, fragmen
+  landing) tetap ditulis tangan mengikuti DESIGN.md.
 - **Grafik SVG buatan sendiri** (port logika `dashboard.html` yang sudah
   lolos uji visual: 1 garis, 4 gridline, tick bulat, tanpa legenda).
   Alasan: aturan app-screen melarang default library grafik.
@@ -66,9 +71,8 @@ tabel di sini ringkasannya.
 
 ## Struktur tab & live-wiring
 
-Enam tab di rail (desktop) / bottom-bar (mobile): Monitor, Devices,
-Provision, Dashboards, Health, Settings. Halaman detail hanya dicapai
-dari daftar, tidak duduk di tab. Tanpa sesi semua tab mengarah ke login;
+Enam tab di sidebar berlabel 240px (desktop) / topbar + lembar menu penuh (mobile).
+Halaman detail hanya dicapai dari daftar, tidak duduk di tab. Tanpa sesi semua tab mengarah ke login;
 device yang dipilih dibagikan antar tab.
 
 Panah tegas = navigasi antar layar. Panah titik-titik = aliran data live.
@@ -79,9 +83,8 @@ lewat satu koneksi WS per device terpilih; perintah tulis kembali via REST.
 flowchart TD
     LOGIN["Login — masuk / daftar"]
     MON["Monitor — pin live + grafik + event"]
-    DEVS["Devices — daftar + status"]
+    DEVS["Devices — daftar + status + tambah"]
     DET["Detail device"]
-    PROV["Provision — buat + token"]
     DASH["Dashboards — daftar"]
     KANVAS["Kanvas dinamis"]
     HEALTH["Health — broker/db/mailer"]
@@ -90,12 +93,9 @@ flowchart TD
     WS{{"WS /stream — 1 koneksi per device"}}
 
     LOGIN -->|"sesi valid"| MON
-    MON <-->|"pilih device"| DEVS
+    MON <-->|"pilih + tambah device"| DEVS
     DEVS -->|"buka"| DET
     DET -.->|"kembali"| DEVS
-    MON -->|"tambah"| PROV
-    PROV -->|"device baru → pantau"| MON
-    PROV -->|"terdaftar di"| DEVS
     DASH -->|"buka"| KANVAS
     MON --- DASH
     MON --- HEALTH
@@ -114,10 +114,9 @@ flowchart TD
 
 | Tab | Berisi | Terhubung ke |
 |---|---|---|
-| Monitor | Pin live, grafik history, feed event, kirim perintah, strip kesehatan | Devices (ganti device pantauan); Provision (tambah bila kosong); Settings (tema/akun) |
-| Devices | Daftar + status online/offline jujur | Detail device (dipilih); Provision (bila kosong) |
+| Monitor | Pin live, grafik history, feed event, kirim perintah, strip kesehatan | Devices (ganti device pantauan; tambah bila kosong); Settings (tema/akun) |
+| Devices | Daftar + status online/offline jujur + tambah device (token sekali tampil + salin) + hapus 2 tahap | Detail device (dipilih) |
 | Detail device | Pin, grafik, perintah, status, hapus (dicapai dari daftar) | Kembali ke Devices |
-| Provision | Form buat device, token sekali tampil + salin, tabel + hapus 2 tahap | Device baru langsung bisa dipilih di Monitor dan Devices |
 | Dashboards | Daftar dashboard | Kanvas dinamis (W10) per dashboard |
 | Health | Broker, db, mailer, statistik (sumber sama dengan strip Monitor) | Strip di Monitor memakai sumber data yang sama |
 | Settings | Tema gelap/terang, akun + keluar, info server, status WS + sambung ulang | Dibuka dari rail/bottom-bar; tidak memutus pantauan |
@@ -133,8 +132,8 @@ flowchart LR
     ROOT --> F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8 & F9
     F1["Autentikasi · 0/5"] --> S1["Login<br/>Daftar akun<br/>Error validasi<br/>Keluar<br/>Ingat sesi"]
     F2["Monitor · 0/6"] --> S2["Strip kesehatan<br/>Pin live<br/>Grafik history<br/>Feed event<br/>Kirim perintah<br/>Pilih device"]
-    F3["Devices · 0/3"] --> S3["Daftar + status<br/>Detail device<br/>Hapus device"]
-    F4["Provision · 0/2"] --> S4["Form buat device<br/>Token sekali tampil + salin"]
+    F3["Devices · 0/4"] --> S3["Daftar + status<br/>Tambah + token<br/>Detail device<br/>Hapus device"]
+    F4["Provision · gabung Devices"] --> S4["Tanpa tab sendiri<br/>Form tambah di layar Devices"]
     F5["Dashboards · 0/3"] --> S5["Daftar dashboard<br/>Kanvas dinamis<br/>Editor visual"]
     F6["Health · 0/2"] --> S6["Broker/db/mailer<br/>Statistik admin"]
     F7["Settings · 0/4"] --> S7["Tema gelap/terang<br/>Akun + keluar<br/>Info server<br/>Status WS + sambung ulang"]
@@ -142,8 +141,8 @@ flowchart LR
     F9["SaaS · 0/3"] --> S9["Link berbagi read-only<br/>Branding per user<br/>Mode viewer"]
 ```
 
-Pemetaan ke task: Auth→W2 · Monitor→W3–W6 · Devices→W4+W8 ·
-Provision→W7 · Dashboards→W10+W12 · Health→W3 · Settings→W14 ·
+Pemetaan ke task: Auth→W2 · Monitor→W3–W6 · Devices→W4+W7+W8 (provisioning gabung ke halaman Devices, tanpa tab sendiri) ·
+Dashboards→W10+W12 · Health→W3 · Settings→W14 ·
 Widget HTML→W11 · SaaS→S5–S7+W13.
 
 ## Task List
@@ -158,7 +157,7 @@ shadcn/ui, token CSS dua tema, font Jost + angka tabular, rail ikon
 **Acceptance criteria:**
 - [ ] `npm run build` lolos tanpa error TS
 - [ ] Toggle tema gelap/terang bekerja, tersimpan, tanpa flash saat load
-- [ ] Rail 56px desktop, bottom bar mobile; semua ikon punya label aksesibel
+- [ ] Sidebar berlabel 240px desktop, topbar 48px + lembar menu di mobile; semua item punya label aksesibel
 
 **Verification:**
 - [ ] `npm run build`, `npx tsc --noEmit`, `npm run lint`
@@ -207,7 +206,7 @@ daftar; `GET /api/ws-token` untuk token WS; logout menghapus cookie.
 kesehatan 5 sel dari `/healthz` + `/admin/stats`, freshness stamp.
 
 **Acceptance criteria:**
-- [ ] Strip menampilkan broker/db/mailer/pending/device online/msgs
+- [ ] Strip menampilkan broker/db/mailer/pending/msgs (sel "device online" pindah ke W4, butuh daftar device)
 - [ ] Server mati → kartu "unreachable" eksplisit, bukan angka basi
 - [ ] Angka dihitung dari respons, bukan diketik manual
 
@@ -300,9 +299,10 @@ bertumpuk, hover dot + tooltip teks, rentang 1H/24H, state kosong jujur.
 
 ### Fase 2 — Lengkap
 
-#### Task W7: Provisioning
-**Description:** Form buat device (nama) → tampilkan ID + token sekali
-dengan tombol salin + langkah flash; tabel device dengan hapus dua tahap.
+#### Task W7: Provisioning (gabung ke Devices, tanpa tab/rute sendiri)
+**Description:** Form tambah device di layar Devices (satu layar kelola):
+nama → ID + token sekali tampil dengan tombol salin + langkah flash;
+tabel device dengan hapus dua tahap. `/provision` redirect ke `/devices`.
 
 **Acceptance criteria:**
 - [ ] Token hanya tampil sekali setelah create, plus tombol salin
@@ -316,7 +316,7 @@ dengan tombol salin + langkah flash; tabel device dengan hapus dua tahap.
 **Dependencies:** W2
 
 **Files likely touched:**
-- `webapp/app/(shell)/provision/page.tsx`
+- `webapp/app/(shell)/devices/page.tsx` (daftar + form tambah + hapus, satu layar)
 - `webapp/components/copy-button.tsx`
 
 **Estimated scope:** S (1–2 file)
@@ -473,6 +473,11 @@ berubah tanpa rilis ulang; *jenis widget baru* tetap butuh kode klien.
 - `webapp/app/(shell)/dashboards/[id]/page.tsx`
 
 **Estimated scope:** M (registry + 7 renderer + halaman)
+
+**Data contoh (bukan hardcode):** `VOLTA_SEED_DEMO=1` saat jalan dev
+menulis 2 device + 1 board + 6 widget milik admin ke SQLite
+(`src/seed.rs`, idempoten, semua bernama "Contoh"). Kanvas selalu baca
+dari API; tidak ada data board/widget di kode webapp.
 
 #### Task W11: Widget HTML kustom (sandbox)
 **Description:** Widget kind `html` berisi `{html, css?, js?}` yang
