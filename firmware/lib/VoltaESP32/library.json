@@ -1,6 +1,6 @@
 {
   "name": "VoltaESP32",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Non-blocking OOP toolkit for ESP32: scheduler, filters, IO, and MQTT client for VOLTA. server",
   "keywords": "esp32, mqtt, scheduler, sensor, non-blocking",
   "license": "MIT",

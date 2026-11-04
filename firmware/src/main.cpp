@@ -1,4 +1,6 @@
 #define MQTT_MAX_PACKET_SIZE 1024
+// Saklar serial contoh ini: 1 = aktif, 0 = mati total.
+#define VOLTA_SERIAL_AKTIF 1
 #include <VoltaESP32.h>
 
 #define WIFI_SSID "NAMA-WIFI"
@@ -16,10 +18,10 @@ VoltaAnalog temp(32);
 VoltaLed led(2);
 
 static void onCmd(const char* pin, const char* value) {
-  Serial.print(F("[cmd] "));
-  Serial.print(pin);
-  Serial.print(F("="));
-  Serial.println(value);
+  VoltaSerial::print(F("[cmd] "));
+  VoltaSerial::print(pin);
+  VoltaSerial::print(F("="));
+  VoltaSerial::println(value);
   if (strcmp(pin, "V0") == 0) {
     if (strcmp(value, "1") == 0) {
       led.on();
@@ -41,28 +43,28 @@ VoltaWifiConfig wificfg;
 unsigned long restartAt = 0;
 
 static void report() {
-  Serial.print(F("[net] "));
-  Serial.print(VoltaDevice::wifiStatusText());
-  Serial.print(F(" rssi="));
-  Serial.print(dev.rssi());
-  Serial.print(F(" mqtt="));
-  Serial.print(dev.mqttConnected() ? F("up") : F("down"));
-  Serial.print(F(" up="));
-  Serial.println(millis() / 1000);
+  VoltaSerial::print(F("[net] "));
+  VoltaSerial::print(VoltaDevice::wifiStatusText());
+  VoltaSerial::print(F(" rssi="));
+  VoltaSerial::print(dev.rssi());
+  VoltaSerial::print(F(" mqtt="));
+  VoltaSerial::print(dev.mqttConnected() ? F("up") : F("down"));
+  VoltaSerial::print(F(" up="));
+  VoltaSerial::println(millis() / 1000);
 }
 
 VoltaTask reportTask(report, 5000, "report");
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println(F("\nVOLTA. device"));
-  Serial.print(F("id="));
-  Serial.println(DEVICE_ID);
-  Serial.print(F("ssid="));
-  Serial.println(WIFI_SSID);
-  Serial.print(F("broker="));
-  Serial.println(MQTT_HOST);
-  Serial.println(F("kirim WIFI <ssid> <password> via Serial untuk ganti kredensial"));
+  VoltaSerial::begin();
+  VoltaSerial::println(F("\nVOLTA. device"));
+  VoltaSerial::print(F("id="));
+  VoltaSerial::println(DEVICE_ID);
+  VoltaSerial::print(F("ssid="));
+  VoltaSerial::println(WIFI_SSID);
+  VoltaSerial::print(F("broker="));
+  VoltaSerial::println(MQTT_HOST);
+  VoltaSerial::println(F("kirim WIFI <ssid> <password> via Serial untuk ganti kredensial"));
   wificfg.begin();
   if (wificfg.mqtt()) dev.setBroker(wificfg.mqtt());
   led.begin();

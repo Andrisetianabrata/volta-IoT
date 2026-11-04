@@ -18,6 +18,7 @@ VOLTA. — tanpa `delay()` di mana pun.
 | `io/VoltaAnalog.h` | Hanya ADC1 (aman WiFi), atenuasi 11 dB, rata-rata |
 | `io/VoltaSensor.h` | Interface sensor + terbit-jika-berubah (deadband + interval) |
 | `comms/VoltaMqtt.h` | PubSubClient: reconnect backoff, LWT, resubscribe |
+| `core/VoltaSerial.h` | Gerbang serial opsional (`VOLTA_SERIAL_AKTIF`) |
 | `comms/VoltaDevice.h` | WiFi + topik `volta/dev/{id}/state|cmd|status|log`, auth token |
 | `utils/VoltaCsv.h` | Baris CSV untuk Serial Plotter |
 | `utils/VoltaJson.h` | Payload JSON ArduinoJson v7 |
@@ -42,7 +43,7 @@ static void kirim() { dev.publishState("V1", temp.readVolt() * 100.0f); }
 VoltaTask kirimTask(kirim, 5000, "kirim");
 
 void setup() {
-  Serial.begin(115200);
+  VoltaSerial::begin();
   temp.begin();
   dev.setWifi("nama-wifi", "kata-sandi");
   dev.onCommand(onCmd);
@@ -58,6 +59,22 @@ void loop() {
 Topik ikut kontrak server: publish `state/{pin}` retained, subscribe
 `cmd/{pin}`, LWT `status` online/offline retained, `log` tanpa retain.
 Username dan password MQTT = token device.
+
+## Serial opsional
+
+Seluruh contoh dan `src/main.cpp` memakai `VoltaSerial`, bukan `Serial`
+langsung, dan masing-masing sudah membawa saklarnya di baris teratas:
+
+```cpp
+// Saklar serial contoh ini: 1 = aktif, 0 = mati total.
+#define VOLTA_SERIAL_AKTIF 1
+#include <VoltaESP32.h>
+```
+
+Ubah `1` menjadi `0` untuk mematikan. Mati berarti `begin` dilewati, semua cetak dibuang saat kompilasi,
+`VoltaLogger` diam (via `VoltaSerial::stream()` → `nullptr`), dan
+`VoltaWifiConfig::pollSerial()` langsung kembali `false`. Cocok untuk
+unit hemat daya atau saat pin TX/RX dipakai peripheral lain.
 
 ## Aturan pin (WROOM-32)
 
@@ -88,8 +105,24 @@ ini); API mengikuti dokumentasi resmi yang diverifikasi via Context7
 
 ## Contoh
 
-`examples/`: 01 blink, 02 scheduler, 03 tombol, 04 MQTT VOLTA. penuh,
-05 filter + CSV.
+`examples/` mencakup seluruh API, tanpa kecuali:
+
+| Contoh | Fitur yang didemo |
+|---|---|
+| 01 blink | `VoltaLed` on/off/toggle + `VoltaTask` dasar |
+| 02 scheduler | `VoltaScheduler`, `runCount`, `setInterval`, `setEnabled`/`isEnabled` |
+| 03 tombol | `VoltaButton` PRESSED / RELEASED / LONG_PRESS |
+| 04 MQTT VOLTA. | `VoltaDevice` penuh + `VoltaWifiConfig` (WIFI/MQTT/SHOW/FORGET) |
+| 05 filter + CSV | `MovingAverage`, `VoltaCsv` (float, pemisah `;`), `readRaw` |
+| 06 tulis virtual pin | `publishState` string + float, `publishLog`, `makeStatePayload` |
+| 07 baca virtual pin | `onCommand` (nilai mentah + JSON `{"value"}`), PWM via perintah |
+| 08 relay | `VoltaRelay` active-low, guard waktu, `isOn` |
+| 09 LED fade PWM | `begin(true)`, `setBrightness`, `fadeTo`/`update`, `level`/`isOn` |
+| 10 sensor pintar | `VoltaSensor` + `shouldPublish`/`last`, `readAveraged`, `ready` |
+| 11 logger | `VoltaLogger` level, `setLevel`, `infoThrottled` |
+| 12 pin aman | `VoltaPinMap` lengkap + `wifiSafeAnalogPin` |
+| 13 banding filter | `MedianFilter`, `ExpFilter` (+ rata-rata), `reset` |
+| 14 MQTT mentah | `VoltaMqtt` langsung: LWT, `setHandler`, publish/subscribe |
 
 ## Lisensi
 

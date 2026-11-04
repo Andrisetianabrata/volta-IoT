@@ -1,3 +1,4 @@
+VoltaSerial	KEYWORD1
 VoltaTask	KEYWORD1
 VoltaScheduler	KEYWORD1
 VoltaButton	KEYWORD1

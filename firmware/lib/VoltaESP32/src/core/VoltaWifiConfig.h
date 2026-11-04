@@ -26,6 +26,9 @@ class VoltaWifiConfig {
   bool fromStorage() const { return stored_; }
 
   bool pollSerial() {
+#if !VOLTA_SERIAL_AKTIF
+    return false;
+#else
     while (Serial.available()) {
       char c = (char)Serial.read();
       if (c == '\n' || c == '\r') {
@@ -39,6 +42,7 @@ class VoltaWifiConfig {
       }
     }
     return false;
+#endif
   }
 
  private:
