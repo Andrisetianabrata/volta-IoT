@@ -1,147 +1,151 @@
 # DESIGN.md — VOLTA. Web (landing + app)
 
 Sumber arah visual untuk `webapp/` (Next.js App Router + TSX). Baca
-bersama `tasks/plan-webapp.md` (kontrak API, art direction `data-terminal`,
-wajah Bit Pair). File ini memutuskan: palet, tipografi, radius, gerak,
-library, dan aturan anti-konflik CSS. Semua yang tidak diputuskan di sini
-mengikuti plan webapp.
+bersama `tasks/plan-webapp.md` (kontrak API, art direction `one-motif`
+noir + kobalt, wajah Bit Pair). File ini memutuskan: palet, tipografi,
+radius, gerak, library, dan aturan anti-konflik CSS. Semua yang tidak
+diputuskan di sini mengikuti plan webapp.
 
-Dial: **ENERGY 2 / RHYTHM 2 / MOTION 2** — percaya diri tapi tertib
-(permukaan teknis, bukan galeri). Berlaku untuk landing maupun app.
+Dial: **ENERGY 3 / RHYTHM 2 / MOTION 2** — berani tapi tertib
+(motif tunggal skala besar, komposisi disiplin).
+Berlaku untuk landing `/` maupun app.
+
+Keputusan pemilik 2026-11-04: varian `/landing` (satu motif, noir +
+kobalt, Jost, WebGL 3D) dipromosikan menjadi halaman utama `/`.
+Halaman tembaga lama diarsipkan di `/landing` sebagai referensi.
 
 ## 1. Identitas yang dipakai ulang
 
 - **Motif Bit Pair**: dua kotak (solid = 1/HIGH, ring = 0/LOW) sebagai
-  satu-satunya motif grafis berulang — hero landing, mark rail/sidebar,
-  favicon, empty-state. Jangan menggambar motif lain.
-- **Bit-stop** (titik kotak) sebagai penutup tegas: dipakai sebagai
-  penanda akhir section hero dan bullet kustom daftar fitur.
-- **Tagline**: "Precision in Every Pulse." (EN) / "Kendali Presisi.
-  Eksekusi Tanpa Kompromi." (ID). Satu saja per halaman, di hero.
-- **Logo**: pakai file master dari `../LOGO/kit/` apa adanya
-  (`volta-horizontal.svg` terang, `-reversed` untuk gelap). Dilarang
-  mewarnai ulang, memutar, menambah bayangan/outline/gradien, atau
-  mengetik ulang wordmark (sudah outline vektor permanen).
+  satu-satunya motif grafis berulang — pita kotak hero/footer, thumb
+  slider kotak, penanda plus/minus akordeon, medan kubus 3D.
+  Jangan menggambar motif lain.
+- **Tagline**: "Precision in Every Pulse." Satu kali per halaman,
+  di footer.
+- **Logo**: pakai file master dari `assets/logo/` apa adanya
+  (simbol + wordmark Jost untuk varian). Dilarang mewarnai ulang,
+  memutar, menambah bayangan/outline/gradien, atau mengetik ulang
+  wordmark.
+- **Open source**: repo `https://github.com/Andrisetianabrata/volta-IoT`
+  (lisensi MIT, branch `main`). CTA utama landing = Install/Download,
+  bukan formulir akses. Perintah install dan port yang tampil di
+  halaman wajib sama dengan `docs_INSTALL.md` dan flag CLI
+  (`--data-folder`).
 
-## 2. Palet (aksen hanya dari logo)
+## 2. Palet (satu aksen: kobalt)
 
-| Nama | HEX | Peran |
-|---|---|---|
-| Volta Ink | `#111111` | Teks utama + ground mode gelap |
-| Volta Copper | `#C07A24` | **Satu-satunya aksen**, maks ~3% piksel: garis seleksi 1px, hue data utama, CTA primer |
-| Volta Steel | `#7C8288` | Teks sekunder, border netral |
-| Volta Paper | `#F5F3EE` | Ground mode terang |
+| Nama | HEX gelap | HEX terang | Peran |
+|---|---|---|---|
+| Ground | `#0A0A0B` | `#F3F0E8` | Latar halaman |
+| Surface | `#131316` | `#FFFFFF` | Panel, kartu, tile |
+| Raised | `#1B1B1F` | `#E9E4D6` | Stage, hover |
+| Border / Rule | `#2A2A30` / `#141416` | `#D8D0BC` / `#EAE3D2` | Garis netral |
+| Ink | `#F2EFE9` | `#131315` | Teks utama |
+| Muted | `#A7A7B0` | `#5B5B62` | Teks sekunder (lolos 4.5:1) |
+| Accent | `#5B79FF` | `#2038E6` | **Satu-satunya aksen**: garis data, tahap aktif, dot status |
+| Tombol isi | `#3B5BFF` | `#2038E6` | Teks tombol selalu putih (`#FFFFFF`, lolos 4.5:1) |
 
 Aturan pakai (mengikat):
 - Tanpa gradien, tanpa glow, tanpa glassmorphism. Kedalaman hanya dari
-  **flat + garis 1px + satu tingkat tone** (sesuai larangan brand).
-- Copper untuk teks hanya bila lolos kontras: di ground gelap Copper
-  murni lolos AA; di ground terang pakai turunan teks `#8A5A1B`
-  (rgb terdekat yang lolos 4.5:1 — wajib diverifikasi ulang dengan
-  contrast checker saat T1, bukan angka final buta).
-- Pasangan resmi logo tetap berlaku untuk lockup; di dalam UI,
-  `Steel` untuk teks sekunder/border, bukan untuk aksen.
+  **flat + 1px + satu tingkat tone**.
+- Kobalt untuk teks hanya bila lolos kontras: di kedua tema pasangan
+  di atas terverifikasi tool (normal ≥ 4.5:1). Aksen terang `#8a6d1f`
+  versi lama dilarang (gagal 4.5:1 sebagai teks).
+- Kubus 3D memakai turunannya: atas `#EDEFF5`, sisi `#2E4BFF`,
+  dasar `#0A0A12` (grafis, bukan teks).
 
 ### Token tema (sumber tunggal kebenaran)
 
 ```css
-:root / [data-theme="light"] {
-  --ground: #F5F3EE;  --surface: #FFFFFF;  --raised: #EDEAE3;
-  --border: #E3DED4;  --rule: #EFEBE2;     --control: #C9C2B4;
-  --text: #111111;    --muted: #5F6368;    --faint: #8A8478;
-  --accent: #C07A24;  --accent-ink: #8A5A1B;
-  --primary: #111111; /* tombol: isi Ink, teks Paper */
+.landing-variant / :root / [data-theme="light"] {
+  --ground: #F3F0E8;  --surface: #FFFFFF;  --raised: #E9E4D6;
+  --border: #D8D0BC;  --rule: #EAE3D2;      --control: #D8D0BC;
+  --text: #131315;    --muted: #5B5B62;    --faint: #7A766C;
+  --accent: #2038E6;  --accent-ink: #FFFFFF;
+  --primary: #2038E6; /* tombol: isi kobalt, teks putih */
 }
-[data-theme="dark"] {
-  --ground: #101012;  --surface: #17171A;  --raised: #1F1F23;
-  --border: #2B2B2E;  --rule: #1C1C1F;     --control: #444444;
-  --text: #F5F3EE;    --muted: #A8A8AB;    --faint: #8A8A8E;
-  --accent: #C07A24;  --accent-ink: #C07A24;
-  --primary: #F5F3EE; /* tombol: isi Paper, teks Ink */
+.landing-variant / [data-theme="dark"] {
+  --ground: #0A0A0B;  --surface: #131316;  --raised: #1B1B1F;
+  --border: #2A2A30;  --rule: #141416;      --control: #2A2A30;
+  --text: #F2EFE9;    --muted: #A7A7B0;    --faint: #7E7E88;
+  --accent: #5B79FF;  --accent-ink: #FFFFFF;
+  --primary: #3B5BFF; /* tombol: isi kobalt, teks putih */
 }
 ```
 
-## 3. Tipografi (maksimal 2 family)
+Catatan: halaman utama memakai scope `.landing-variant` sehingga
+token varian menimpa primitif shadcn tanpa menyentuh file komponen.
+Halaman arsip `/landing` memakai token tembaga lama (tetap berlaku
+di scope-nya, tidak dikembangkan lagi).
+
+## 3. Tipografi (Jost + angka tabular)
 
 | Peran | Font | Alasan |
 |---|---|---|
-| Display + UI + teks | **Montserrat** (400/500/600/700/800) | Satu keluarga dengan wordmark (Montserrat Black); cukup satu untuk semua teks agar hitungan family tetap 2 |
-| Angka, telemetri, kode, log | **IBM Plex Mono** (400/500) | Digit tabular + nuansa instrumen; angka pin/valuta tidak goyang saat live-update |
+| Display + UI + teks | **Jost** (400/500/700, uppercase display, tracking -0.03, leading 0.9) | Geometris tegas, cocok untuk motif kotak; satu family cukup |
+| Angka, telemetri | Jost + `font-variant-numeric: tabular-nums` | Angka tidak goyang saat live-update; tanpa monospace di label (aturan house) |
 
 Muat via `next/font` (self-host, subset latin, `display: swap`).
-Angka live **wajib** `font-variant-numeric: tabular-nums`.
-Skala display landing: hero 40–64px (desktop) / 32–40px (mobile),
-satu ukuran dominan per layar.
+Skala display landing: hero 40–60px (desktop) / 36–40px (mobile),
+satu ukuran dominan per layar, headline ≤ 2 baris di semua lebar.
 
-## 4. Radius — rekomendasi: pakai, tapi nyaris tajam
+## 4. Radius — nyaris nol (motif kotak)
 
-**Keputusan: `--radius: 2px` sebagai satu-satunya token radius.**
-Alasan: geometri Bit Pair 100% sudut siku — radius besar akan
-bertabrakan dengan identitas; radius 0 total terasa kasar di form.
-2px memberi kesan presisi/instrumental sekaligus tetap "disentuh
-desainer", dan membedakan dari SaaS generik (8–16px).
-
-- Kartu, tombol, input, dialog: `2px`. Satu nilai, tanpa variasi.
-- Pengecualian fungsional (bukan dekorasi): status dot, badge/pill
-  kecil, avatar, toggle thumb → `9999px` (bentuknya menuntut lingkaran).
-- Dilarang: radius per-komponen seenaknya, pill button besar, kartu
-  12–24px.
+**Keputusan: `--radius: 0` untuk permukaan varian.**
+Alasan: geometri Bit Pair 100% sudut siku — radius apa pun
+bertrabrakan dengan motif; kartu, panel, tombol, input: kotak penuh.
+- Pengecualian fungsional: status dot → lingkaran penuh.
+- Komponen shadcn yang membawa radius bawaan (rounded-lg = 2px)
+  dioverride ke 0 lewat prop `style` di titik pakai, bukan dari CSS
+  global (lihat §8).
 
 ## 5. Tema gelap + terang
 
 - Satu set token di §2, diganti via atribut `data-theme` di `<html>`.
   Transisi warna instan (tanpa fade tema) agar tidak berkedip.
 - Pilihan tersimpan (`localStorage`), default mengikuti
-  `prefers-color-scheme`; toggle selalu terlihat di navbar/shell.
-- Kedua tema wajib lolos semua gate yang sama (kontras, inspeksi
-  1440/768/390). Tema bukan "mode hemat": tidak ada fitur yang hilang
-  di salah satu tema.
+  `prefers-color-scheme`; toggle selalu terlihat di navbar.
+- Kedua tema wajib lolos gate yang sama (kontras, inspeksi
+  1440/768/390). Tema bukan "mode hemat".
 
-## 6. Gerak & WebGL (landing interaktif, ringan di HP)
+## 6. Gerak & WebGL (medan Bit 3D + ticker)
 
-Prinsip: gerak menjelaskan, bukan menghias. Target budget JS hero
-< 50 KB gzip; frame ≤ 16 ms di HP kelas menengah; diam total bila
+Prinsip: gerak menjelaskan, bukan menghias. Diam total bila
 `prefers-reduced-motion`.
 
 | Kebutuhan | Pilihan | Alasan |
 |---|---|---|
-| Kanvas hero WebGL (latar medan sinyal Bit-Pair yang merespons scroll) | **`ogl`** (paket `ogl`, tanpa post-processing) | Satu-satunya lib 3D; cukup untuk shader kustom + DPR/resize handling. three.js/react-three-fiber ditolak: ratusan KB untuk latar |
-| Scroll halus agar scrub terasa premium | **`lenis`** (paket `lenis`, `autoRaf: true`), progressive enhancement | Jangan matikan manual saat reduced-motion: bawaan lenis sudah menonaktifkan smoothing-nya sendiri (`respectReducedMotion` default true — jangan ubah); `Save-Data` tetap menonaktifkan total |
-| Reveal section, hover, mikro-interaksi | Hook `useReveal` sendiri (IntersectionObserver, ±30 baris) | `framer-motion` ditolak: ratusan KB untuk animasi yang bisa dicapai IO + transisi CSS |
-| Grafik pin/history | SVG buatan sendiri (keputusan plan, tidak berubah) | Data renggang: SVG lebih murah dari konteks WebGL per grafik |
+| Medan kubus Bit 3D hero (perspektif nyata, 240 kubus, tinggi mengikuti waktu + pointer + scroll) | **`ogl`** (paket `ogl`, tanpa post-processing) | Satu-satunya lib 3D; cukup untuk shader kustom + instans + DPR handling. three.js ditolak: ratusan KB untuk latar |
+| Scroll halus | **`lenis`** (paket `lenis`, `autoRaf: true`), progressive enhancement | Jangan ubah `respectReducedMotion`; `Save-Data` menonaktifkan total |
+| Reveal section, hover, mikro-interaksi | Hook `useReveal` sendiri (IntersectionObserver) | `framer-motion` ditolak: ratusan KB untuk IO + transisi CSS |
+| Ticker pin live | CSS `translateX` loop 36s, jeda saat hover/reduced-motion | Signature element; nilai simulasi berlabel demo |
+| Grafik pin/history | **`recharts`** (`LineChart`, 1 `Line` aksen 2px, tanpa legenda, tooltip kustom) — override pemilik 2026-11-04 atas rencana SVG buatan sendiri | Deklaratif + aksesibilitas bawaan; gaya tetap (1 garis, tick bulat, tanpa legenda) |
 
-Budget JS hero < 50 KB gzip **termasuk** ogl+lenis — diverifikasi
-dengan bundle analyzer saat T1, bukan klaim.
-
-Aturan WebGL (mengikat, terverifikasi dari sumber resmi OGL):
-- Satu kanvas, satu shader, `antialias: false`, `alpha: false`
-  (clear color = token ground tema aktif; digambar ulang tiap ganti tema).
-  Tanpa post-processing; DPR dibatasi `min(devicePixelRatio, 1.75)`
-  via opsi konstruktor `new Renderer({ dpr })`, lalu `setSize()` ulang
-  tiap resize dan tiap ganti tema.
-- Animasi terikat progres scroll (uniform `u_scroll`, di-update per
-  frame dari nilai lenis) bukan waktu semata, agar terasa interaktif,
-  bukan video.
-- Pause saat kanvas di luar viewport (`IntersectionObserver`),
-  saat tab tersembunyi, dan saat `prefers-reduced-motion`
-  (tampilkan frame statis/poster sebagai fallback).
-- Cleanup saat unmount wajib (StrictMode me-mount dua kali):
-  `cancelAnimationFrame`, `program.remove()`, hapus kanvas dari DOM.
+Aturan WebGL (mengikat):
+- Satu kanvas per medan, `antialias: true` (geometri tajam),
+  `alpha: true` (ground dari token tema); DPR dibatasi
+  `min(devicePixelRatio, 1.75)`; `setSize()` ulang tiap resize.
+- Animasi terikat waktu + pointer + progres scroll; pause saat kanvas
+  di luar viewport (`IntersectionObserver`), saat tab tersembunyi,
+  dan saat `prefers-reduced-motion` (satu frame statis).
+- Cleanup saat unmount wajib: `cancelAnimationFrame`, hapus listener,
+  buang geometri/program. Dilarang `canvas.remove()` (melawan React
+  StrictMode — pelajaran insiden buffer 300x150).
+- Pelajaran yang dicatat: `setSize` OGL menulis inline style dan
+  mengunci buffer bila dipanggil sebelum CSS termuat — selalu kosongkan
+  inline style setelahnya + `requestAnimationFrame(resize)` susulan.
 - Seluruh konten tetap terbaca tanpa WebGL (kanvas dekoratif murni,
   `aria-hidden`, teks di atasnya HTML biasa).
 
 Aturan Lenis (terverifikasi dari sumber resmi):
-- Wajib sertakan CSS resmi lenis (`lenis/dist/lenis.css`) agar tidak
-  ada overflow/clipping aneh.
-- `syncTouch` bawaan mati = sentuhan pakai scroll native (bagus untuk
-  HP, jangan dinyalakan kecuali ada alasan tertulis).
-- Jangan set `respectReducedMotion: false`; baca
-  `lenis.prefersReducedMotion` untuk menghentikan scrub WebGL kita
-  sendiri.
+- Wajib sertakan CSS resmi lenis (`lenis/dist/lenis.css`).
+- `syncTouch` bawaan mati = sentuhan pakai scroll native.
+- Jangan set `respectReducedMotion: false`.
 
 Gerak UI: reveal `translateY(18px) + opacity`, sekali jalan
 (`once: true`), stagger ≤ 90 ms; hover hanya perubahan warna/border
-(token, tanpa transform melompat); tidak ada autoplay/carousel.
+(token, tanpa transform melompat); tidak ada autoplay/carousel
+(kecuali ticker yang dijeda).
 
 ## 7. shadcn — pakai, tapi dirombak total
 
@@ -150,41 +154,33 @@ shadcn dipakai sebagai **primitif perilaku + aksesibilitas**
 
 | Komponen shadcn | Yang dirombak |
 |---|---|
-| Button, Input, Select, Switch, Tabs, Table, Dialog, Tooltip, Badge, Card | radius → token 2px; shadow → none; gradien → flat; warna → token §2; focus-ring → outline Copper 2px |
+| Button (5 varian: default/accent/outline/ghost/destructive; 4 ukuran), Input, Slider (thumb kotak 22px), Accordion (plus/minus dari 2 bar, tanpa chevron), Badge (dot + label fungsional) | radius → 0; shadow → none; gradien → flat; warna → token §2; focus-ring → outline kobalt 2px |
 
 Yang **tidak** diambil dari shadcn: chart, carousel, gaya bawaan apa pun
 yang memakai bayangan/gradien/radius besar.
 
 ## 8. Arsitektur anti-konflik CSS (mengikat)
 
-Masalah yang dicegah: CSS global menimpa komponen dan sebaliknya.
-Aturannya satu arah aliran — **token → utility → komponen** —
-ditegakkan oleh cascade layer bawaan Tailwind v4 (jangan dilawan):
+Aliran satu arah — **token → utility → komponen** — ditegakkan oleh
+cascade layer bawaan Tailwind v4 (jangan dilawan):
+`theme → base → components → utilities`.
 
-Urutan layer (rendah → tinggi, yang kanan menang bila selektor setara):
-`theme → base → components → utilities` (urutan bawaan Tailwind v4,
-terverifikasi di dokumentasi resmi — jangan dilawan, jangan disusun
-ulang). Karena itu:
-
-1. **Token hanya di `@theme`** (`webapp/app/globals.css`): warna,
-   font, `--radius`, breakpoint. Tidak ada token di file lain.
-2. **Base (`@layer base`)**: hanya reset + `body` (background/text
-   dari token) + selektor fokus global. Dilarang menarget class
-   komponen (`[data-slot]`, `.btn`, dsb.).
-3. **Komponen shadcn di `components/ui/`**: hanya memakai utility
-   Tailwind + variabel token; varian via `cva`, bukan override CSS.
-   Dilarang `!important` di seluruh codebase (lint: tolak stringnya).
+1. **Token hanya di `@theme`** (`webapp/app/globals.css`) + override
+   scope `.landing-variant` (`webapp/app/variant.css`): warna, font,
+   `--radius`. Tidak ada token di file lain.
+2. **Base (`@layer base`)**: hanya reset + `body` + selektor fokus
+   global. Dilarang menarget class komponen.
+3. **Komponen shadcn di `components/ui/`**: hanya utility Tailwind +
+   variabel token; varian via `cva`, bukan override CSS.
+   Dilarang `!important` di seluruh codebase.
 4. **App (`components/`, `app/`)**: komposisi primitif shadcn, tanpa
-   menimpa interiornya; kustomisasi lewat props/variant yang disediakan.
+   menimpa interiornya; radius non-standar (0) lewat prop `style`
+   di titik pakai.
 5. **Satu-satunya pengecualian global**: keyframes animasi dan
-   `.reveal` states — didefinisikan sekali di `styles/motion.css`,
-   tanpa warna/radius (hanya transform/opacity).
+   `.reveal`/`.ticker` states di `styles/motion.css`, tanpa warna/radius.
 6. **Tema**: hanya mengganti nilai variabel di selektor
-   `[data-theme]` — tidak ada override per-komponen per-tema.
-   Wajib tambah satu baris ini agar varian `dark:` mengikuti atribut
-   (bawaan v4 mengikuti OS — tanpa baris ini tema manual tidak jalan):
+   `[data-theme]` — tidak ada override per-komponen per-tema, plus
    `@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));`
-   Bila satu kasus butuh beda rupa antar-tema, jadikan token baru.
 
 Uji konflik: `npx tsc`, build Next, lalu inspeksi visual kedua tema —
 bila satu komponen beda rupa tanpa token yang berubah, itu bug
@@ -192,27 +188,30 @@ lapisan, bukan "tweak CSS".
 
 ## 9. Responsif & performa HP
 
-- Breakpoint: `sm 640 / md 768 / lg 1024 / xl 1440`. Kanvas grid
-  dashboard: 12 kolom desktop → 1 kolom HP; rail menjadi bottom-bar.
-- Target sentuh ≥ 44px; tidak ada hover-only interaction.
-- Media: SVG logo langsung (tanpa raster ganda); PNG hanya favicon/
-  PWA icon dari `kit/`.
+- Breakpoint: `sm 640 / md 768 / lg 1024 / xl 1440`.
+- Target sentuh ≥ 44px (thumb slider 22px diberi hit area `py-5`).
+- Grid kolaps: `min-w-0` wajib di tiap sel grid agar konten lebar
+  (pita Bit, chart) tidak mendorong overflow — pelajaran insiden
+  overflow 802px di viewport 500px.
+- Media: SVG logo langsung; PNG hanya favicon.
 - JS di bawah lipatan di-`dynamic import`; font subset latin saja.
-- Budget: LCP < 2.5 s di Moto G4 simulasi; total JS landing < 150 KB gzip.
+- Budget: total JS landing < 150 kB gzip (terakhir terukur 328 kB
+  uncompressed — belum diverifikasi analyzer, jangan diklaim).
 
 ## 10. Aksesibilitas minimum (non-negosiasi)
 
 - Kontras teks ≥ 4.5:1 (besar ≥ 3:1), diverifikasi tool, bukan mata.
-- Focus visible Copper 2 px di semua kontrol, kedua tema.
-- `prefers-reduced-motion`: matikan lenis + WebGL + reveal (konten
-  langsung tampil).
-- Form berlabel, error teks (bukan warna saja); tabel memakai `th`
-  + `scope`; ikon dekoratif `aria-hidden`.
+  Pasangan terukur: gelap 17.24/8.23, terang 16.29/5.27 (teks/muted).
+- Focus visible kobalt 2 px di semua kontrol, kedua tema.
+- `prefers-reduced-motion`: matikan lenis + WebGL + ticker + reveal
+  (konten langsung tampil).
+- Form berlabel, error teks (bukan warna saja); ikon dekoratif
+  `aria-hidden`; kanvas 3D `aria-hidden`.
 
 ## 11. Gate penerimaan file ini
 
-Sebelum implementasi T1 webapp, DESIGN.md dianggap final bila:
-- [ ] Setiap token punya pasangan kontras terverifikasi tool.
-- [ ] Radius 2px + pengecualian pill disepakati (atau diubah di sini).
-- [ ] Daftar library final: `ogl`, `lenis` (paket `lenis`, `autoRaf: true`, CSS resmi diimpor), tanpa framer-motion.
-- [ ] Tidak ada bagian yang bergantung pada gambar/foto yang belum ada.
+- [x] Setiap token punya pasangan kontras terverifikasi tool.
+- [x] Radius 0 + pengecualian dot disepakati.
+- [x] Daftar library final: `ogl`, `lenis`, `recharts`, tanpa framer-motion.
+- [x] CTA landing = Install/Download ke repo, perintah = `docs_INSTALL.md`.
+- [ ] Budget JS < 150 kB gzip terverifikasi analyzer (terbuka).

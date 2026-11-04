@@ -5,3 +5,6 @@ logs/
 .env
 .agents/
 .opencode/
+webapp/node_modules/
+webapp/.next/
+.taste-skill/

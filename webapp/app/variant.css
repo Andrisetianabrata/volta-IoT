@@ -1,0 +1,99 @@
+/* Varian referensi /landing — sistem bebas, di luar DESIGN.md.
+   Satu motif (kotak Bit), Jost, noir + kobalt. Berlaku dua tema. */
+
+.landing-variant {
+  --v-bg: #0a0a0b;
+  --v-surface: #131316;
+  --v-raised: #1b1b1f;
+  --v-border: #2a2a30;
+  --v-rule: #141416;
+  --v-ink: #f2efe9;
+  --v-muted: #a7a7b0;
+  --v-faint: #7e7e88;
+  --v-accent: #5b79ff;
+  --v-btn: #3b5bff;
+  --v-btn-ink: #ffffff;
+  --v-paper: #f2efe9;
+
+  font-family: var(--font-variant), "Jost", system-ui, sans-serif;
+  background: var(--v-bg);
+  color: var(--v-ink);
+
+  /* Peta ulang primitif shadcn ke token varian (tanpa menyentuh file komponen). */
+  --color-ground: var(--v-bg);
+  --color-surface: var(--v-surface);
+  --color-raised: var(--v-raised);
+  --color-border: var(--v-border);
+  --color-rule: var(--v-rule);
+  --color-control: var(--v-border);
+  --color-text: var(--v-ink);
+  --color-muted: var(--v-muted);
+  --color-faint: var(--v-faint);
+  --color-accent: var(--v-accent);
+  --color-accent-ink: var(--v-btn-ink);
+  --color-primary: var(--v-btn);
+  --background: var(--v-bg);
+  --foreground: var(--v-ink);
+  --card: var(--v-surface);
+  --card-foreground: var(--v-ink);
+  --popover: var(--v-surface);
+  --popover-foreground: var(--v-ink);
+  --primary: var(--v-btn);
+  --primary-foreground: var(--v-btn-ink);
+  --secondary: var(--v-raised);
+  --secondary-foreground: var(--v-ink);
+  --muted: var(--v-raised);
+  --muted-foreground: var(--v-muted);
+  --accent: var(--v-accent);
+  --accent-foreground: var(--v-btn-ink);
+  --border: var(--v-border);
+  --input: var(--v-border);
+  --ring: var(--v-accent);
+}
+
+html[data-theme="light"] .landing-variant {
+  --v-bg: #f3f0e8;
+  --v-surface: #ffffff;
+  --v-raised: #e9e4d6;
+  --v-border: #d8d0bc;
+  --v-rule: #eae3d2;
+  --v-ink: #131315;
+  --v-muted: #5b5b62;
+  --v-faint: #7a766c;
+  --v-accent: #2038e6;
+  --v-btn: #2038e6;
+  --v-btn-ink: #ffffff;
+  --v-paper: #131315;
+}
+
+.landing-variant .font-display-em {
+  font-family: var(--font-variant), "Jost", system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.landing-variant .tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pita kotak Bit: solid + ring bergantian. */
+.landing-variant .bit-band {
+  display: flex;
+  gap: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.landing-variant .bit-band > span {
+  display: block;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+}
+.landing-variant .bit-band > span.on {
+  background: var(--v-accent);
+}
+.landing-variant .bit-band > span.off {
+  border: 3px solid var(--v-accent);
+}

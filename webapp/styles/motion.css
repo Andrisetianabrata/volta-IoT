@@ -1,0 +1,52 @@
+/* Gerak UI: hanya transform/opacity. Tanpa warna/radius. */
+
+@keyframes volta-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes volta-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.ticker-track {
+  animation: volta-ticker 36s linear infinite;
+}
+
+.ticker:hover .ticker-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+  }
+}
+
+.reveal-on .reveal {
+  opacity: 0;
+}
+
+.reveal-on .reveal.is-in {
+  animation: volta-rise 0.6s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-on .reveal {
+    opacity: 1;
+    animation: none;
+    transform: none;
+  }
+}

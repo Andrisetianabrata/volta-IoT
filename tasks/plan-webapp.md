@@ -32,14 +32,14 @@ milik server Rust (selesai 100%). Task webapp hidup di file ini dan
 - **Grafik SVG buatan sendiri** (port logika `dashboard.html` yang sudah
   lolos uji visual: 1 garis, 4 gridline, tick bulat, tanpa legenda).
   Alasan: aturan app-screen melarang default library grafik.
-- **Art direction: `data-terminal`** (deal `draw.mjs --app`, seed
-  870858627, folder `.taste-skill/app-webapp/`). Alasan: sesi pantau
-  lama; bahasa yang sama dengan prototipe `dashboard.html` yang sudah
-  lolos look-round. Aksen tembaga `#C07A24` dari logo sebagai satu-satunya
-  garis 1px (seleksi, garis grafik, dot). Dua tema penuh:
-  gelap (ground `#101012`) dan terang (ground `#F5F3EE`), token di bawah.
-- **Wajah produk**: mark Bit Pair (SVG dua kotak, dari `assets/logo/`)
-  di rail, angka tabular IBM Plex Mono, teks Montserrat, ticker pin live
+- **Art direction: `one-motif` noir + kobalt** (deal `draw.mjs`,
+  seed 1775104155; Jost; satu motif kotak Bit di semua skala: pita,
+  thumb slider, plus/minus, medan kubus 3D). Keputusan pemilik
+  2026-11-04: varian `/landing` dipromosikan menjadi halaman utama `/`;
+  halaman tembaga lama diarsipkan di `/landing` sebagai referensi.
+  Alasan: premium, berani, tetap jujur (tanpa statistik/testimoni palsu).
+- **Wajah produk**: mark Bit Pair + pita kotak (SVG/div, dari
+  `assets/logo/`), angka tabular Jost, teks Jost, ticker pin live
   + feed event sebagai signature element.
 - **Satu pertanyaan layar**: "device saya melaporkan apa sekarang?"
   Blok terbesar = pin live + grafik pin terpilih.
@@ -48,12 +48,13 @@ milik server Rust (selesai 100%). Task webapp hidup di file ini dan
 
 | Token | Gelap | Terang |
 |---|---|---|
-| `--ground` | `#101012` | `#F5F3EE` |
-| `--surface` | `#17171A` | `#FFFFFF` |
-| `--raised` | `#1F1F23` | `#EDEAE3` |
-| `--border` / `--rule` | `#2B2B2E` / `#1C1C1F` | `#E3DED4` / `#EFEBE2` |
-| `--text` / `--muted` | `#F5F3EE` / `#A8A8AB` | `#111111` / `#5F6368` |
-| `--accent` | `#C07A24` | `#8A5A1B` (turunan teks agar kontras ≥ 4.5:1; grafis tetap Copper murni) |
+| `--ground` | `#0A0A0B` | `#F3F0E8` |
+| `--surface` | `#131316` | `#FFFFFF` |
+| `--raised` | `#1B1B1F` | `#E9E4D6` |
+| `--border` / `--rule` | `#2A2A30` / `#141416` | `#D8D0BC` / `#EAE3D2` |
+| `--text` / `--muted` | `#F2EFE9` / `#A7A7B0` | `#131315` / `#5B5B62` |
+| `--accent` | `#5B79FF` | `#2038E6` (turunan teks agar kontras ≥ 4.5:1; grafis boleh kobalt murni) |
+| `--primary` (tombol) | `#3B5BFF` teks putih | `#2038E6` teks putih |
 | `--positive` / bg | `#3FC07A` / `#172A1D` | `#247B50` / `#DCFAE5` |
 | `--negative` / bg | `#E5566F` / `#2C1A20` | `#C4242A` / `#FFEBE9` |
 
@@ -151,7 +152,7 @@ Widget HTML→W11 · SaaS→S5–S7+W13.
 
 #### Task W1: Scaffold webapp + sistem desain dua tema
 **Description:** Inisialisasi Next.js (App Router, TS strict), Tailwind,
-shadcn/ui, token CSS dua tema, font Montserrat + IBM Plex Mono, rail ikon
+shadcn/ui, token CSS dua tema, font Jost + angka tabular, rail ikon
 6 tab + bottom bar mobile, halaman kosong tiap view.
 
 **Acceptance criteria:**
@@ -269,9 +270,11 @@ perintah (`PUT .../pins/{pin}`) dengan konfirmasi hasil/gagal.
 **Estimated scope:** M (3–4 file)
 
 #### Task W6: Grafik history
-**Description:** SVG buatan sendiri per aturan app-screen: 1 garis tembaga
-2px, 3–5 gridline, tick bulat di atas maksimum, label jam tidak bertumpuk,
-hover dot + tooltip teks, rentang 1H/24H, state kosong jujur.
+**Description:** Recharts (`LineChart` + 1 `Line` tembaga 2px, tanpa
+legenda, tooltip kustom, `isAnimationActive` mati saat
+`prefers-reduced-motion`) — override pemilik 2026-11-04 atas rencana
+SVG buatan sendiri. Tick bulat di atas maksimum, label jam tidak
+bertumpuk, hover dot + tooltip teks, rentang 1H/24H, state kosong jujur.
 
 **Acceptance criteria:**
 - [ ] Pin non-numerik diabaikan dengan catatan jumlah sampel

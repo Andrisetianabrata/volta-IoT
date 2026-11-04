@@ -3,6 +3,11 @@
 Rincian ada di `tasks/plan-webapp.md`. File ini HANYA untuk webapp.
 Task server Rust tetap di `tasks/todo.md` (selesai, jangan campur).
 
+Keputusan pemilik 2026-11-04: landing utama = `/` (varian one-motif
+noir + kobalt, Jost, WebGL 3D, Recharts, open-source dengan CTA
+Install/Download ke GitHub). Halaman tembaga lama diarsipkan di
+`/landing` sebagai referensi, tidak dikembangkan lagi.
+
 ## Fase 0 — Fondasi
 
 - [ ] Task W1: Scaffold webapp + sistem desain dua tema (M)
