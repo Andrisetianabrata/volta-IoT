@@ -7,4 +7,5 @@ logs/
 .opencode/
 webapp/node_modules/
 webapp/.next/
+webapp/.next-dev/
 .taste-skill/

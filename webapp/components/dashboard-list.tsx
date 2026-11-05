@@ -4,32 +4,37 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { FieldError } from "@/components/ui/field-error";
 import type { Dashboard } from "@/lib/api";
 import { createDashboardAction, deleteDashboardAction } from "@/lib/actions";
 
 /* Daftar board (DESIGN-APP.md §6): form di Card, daftar sebagai satu Card
-   dengan pemisah rule, hover tint + lift 2px. Hapus dua tahap. */
+   dengan pemisah rule, hover tint + lift 2px. Hapus dua tahap.
+   Validasi per-input di bawah input; error sistem via sonner. */
 
 export function DashboardList({ initial }: { initial: Dashboard[] }) {
   const router = useRouter();
   const [createState, createForm, creating] = useActionState(createDashboardAction, null);
   const [arming, setArming] = useState<string | null>(null);
-  const [delError, setDelError] = useState<string | null>(null);
   useEffect(() => {
     if (createState?.id) router.refresh();
   }, [createState?.id, router]);
+  useEffect(() => {
+    if (createState?.error && !createState.field) toast.error(createState.error);
+  }, [createState]);
+  const nameError = createState?.field === "name" ? (createState.error ?? null) : null;
   async function hapus(id: string) {
     if (arming !== id) {
       setArming(id);
       return;
     }
-    setDelError(null);
     const r = await deleteDashboardAction(id);
     if (r.error) {
-      setDelError(r.error);
+      toast.error(r.error);
       return;
     }
     setArming(null);
@@ -38,23 +43,27 @@ export function DashboardList({ initial }: { initial: Dashboard[] }) {
   return (
     <div>
       <Card>
-      <form action={createForm} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <form action={createForm} className="flex flex-col gap-3 sm:flex-row sm:items-start">
         <div className="min-w-0 flex-1">
           <label htmlFor="board-name" className="font-mono2 text-[12px] text-[var(--color-muted)]">
             Nama board baru
           </label>
-          <Input id="board-name" name="name" maxLength={80} placeholder="cth. Ruang Server" className="mt-1.5" />
+          <Input
+            id="board-name"
+            name="name"
+            maxLength={80}
+            placeholder="cth. Ruang Server"
+            className="mt-1.5"
+            aria-invalid={nameError ? true : undefined}
+            aria-describedby={nameError ? "board-name-error" : undefined}
+          />
+          <FieldError id="board-name-error" message={nameError} />
         </div>
-        <Button type="submit" disabled={creating} className="min-h-[44px] shrink-0 active:translate-y-px">
+        <Button type="submit" disabled={creating} className="min-h-[44px] shrink-0 active:translate-y-px sm:mt-[22px]">
           {creating ? "Membuat…" : "Buat board"}
         </Button>
       </form>
       </Card>
-      {createState?.error ? (
-        <p role="alert" className="mt-3 border border-[#C4242A] bg-[var(--color-surface)] px-4 py-3 text-[15px] text-[var(--color-text)]" style={{ borderRadius: "var(--radius)" }}>
-          {createState.error}
-        </p>
-      ) : null}
       {initial.length === 0 ? (
         <Card className="mt-4">
           <p className="text-[20px] font-semibold text-[var(--color-text)]">Belum ada board.</p>
@@ -97,11 +106,6 @@ export function DashboardList({ initial }: { initial: Dashboard[] }) {
         </ul>
         </Card>
       )}
-      {delError ? (
-        <p role="alert" className="mt-2 text-[15px] text-[var(--color-text)]">
-          {delError}
-        </p>
-      ) : null}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import "./globals.css";
 import "./variant.css";
 import { SmoothScroll } from "../components/smooth-scroll";
 import { ThemeToggle } from "../components/theme-toggle";
+import { Toaster } from "../components/ui/sonner";
 import { LogoutButton } from "../components/login-form";
 import { sessionToken } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     pathname.startsWith("/devices") ||
     pathname.startsWith("/dashboards") ||
     pathname.startsWith("/health") ||
-    pathname.startsWith("/settings");
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/login");
   return (
     <html lang="id" data-theme="light" className={cn(display.variable, mono.variable, jost.variable)} suppressHydrationWarning>
       <head>
@@ -82,6 +84,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </header>
         )}
         <main id="konten">{children}</main>
+        <Toaster />
       </body>
     </html>
   );

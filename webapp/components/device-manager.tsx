@@ -4,9 +4,11 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, ChevronRight, Copy, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { FieldError } from "@/components/ui/field-error";
 import type { Device, DeviceStatus } from "@/lib/api";
 import { createDeviceAction, deleteDeviceAction } from "@/lib/actions";
 import { formatAgo } from "@/lib/format";
@@ -63,24 +65,27 @@ function CopyOnce({ label, text }: { label: string; text: string }) {
   );
 }
 
-/* Satu layar kelola device (DESIGN-APP.md §6): form + daftar dalam Card 8px. */
+/* Satu layar kelola device (DESIGN-APP.md §6): form + daftar dalam Card 8px.
+   Validasi nama di bawah input; error sistem via sonner. */
 export function DeviceManager({ initial }: { initial: DeviceRow[] }) {
   const router = useRouter();
   const [createState, createForm, creating] = useActionState(createDeviceAction, null);
   const [arming, setArming] = useState<string | null>(null);
-  const [delError, setDelError] = useState<string | null>(null);
   useEffect(() => {
     if (createState?.device_id) router.refresh();
   }, [createState?.device_id, router]);
+  useEffect(() => {
+    if (createState?.error && !createState.field) toast.error(createState.error);
+  }, [createState]);
+  const nameError = createState?.field === "name" ? (createState.error ?? null) : null;
   async function hapus(id: string) {
     if (arming !== id) {
       setArming(id);
       return;
     }
-    setDelError(null);
     const r = await deleteDeviceAction(id);
     if (r.error) {
-      setDelError(r.error);
+      toast.error(r.error);
       return;
     }
     setArming(null);
@@ -89,23 +94,27 @@ export function DeviceManager({ initial }: { initial: DeviceRow[] }) {
   return (
     <div>
       <Card>
-      <form action={createForm} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <form action={createForm} className="flex flex-col gap-3 sm:flex-row sm:items-start">
         <div className="min-w-0 flex-1">
           <label htmlFor="device-name" className="font-mono2 text-[12px] text-[var(--color-muted)]">
             Nama device baru
           </label>
-          <Input id="device-name" name="name" maxLength={80} placeholder="cth. ESP32 Ruang Server" className="mt-1.5" />
+          <Input
+            id="device-name"
+            name="name"
+            maxLength={80}
+            placeholder="cth. ESP32 Ruang Server"
+            className="mt-1.5"
+            aria-invalid={nameError ? true : undefined}
+            aria-describedby={nameError ? "device-name-error" : undefined}
+          />
+          <FieldError id="device-name-error" message={nameError} />
         </div>
-        <Button type="submit" disabled={creating} className="min-h-[44px] shrink-0 active:translate-y-px">
+        <Button type="submit" disabled={creating} className="min-h-[44px] shrink-0 active:translate-y-px sm:mt-[22px]">
           {creating ? "Menambah…" : "Tambah device"}
         </Button>
       </form>
       </Card>
-      {createState?.error ? (
-        <p role="alert" className="mt-3 border border-[#C4242A] bg-[var(--color-surface)] px-4 py-3 text-[15px] text-[var(--color-text)]" style={{ borderRadius: "var(--radius)" }}>
-          {createState.error}
-        </p>
-      ) : null}
       {createState?.device_id && createState.token ? (
         <Card className="mt-4 border-[var(--color-accent)]">
           <p className="text-[17px] font-semibold text-[var(--color-text)]">Device dibuat. Salin sekarang.</p>
@@ -169,11 +178,6 @@ export function DeviceManager({ initial }: { initial: DeviceRow[] }) {
         </ul>
         </Card>
       )}
-      {delError ? (
-        <p role="alert" className="mt-2 text-[15px] text-[var(--color-text)]">
-          {delError}
-        </p>
-      ) : null}
     </div>
   );
 }
