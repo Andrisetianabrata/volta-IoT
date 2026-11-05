@@ -168,63 +168,43 @@ Verifikasi: integrasi test.
 
 Berkas: `src/pins/command.rs`. Estimasi: S. Dependensi: Task 7.
 
-## Fase 5: SaaS (baru — multi-penyewa siap jual)
+## Fase 5: Berbagi terbuka (keputusan pemilik: open untuk semua)
 
-Fase 1–4 membangun server untuk satu pemilik. Fase 5 menjadikannya
-layak jual: isolasi per user sudah ada; yang ditambah adalah berbagi
-terkendali, batas paket, dan identitas brand per pelanggan.
+Keputusan pemilik: TANPA read-only, TANPA branding, TANPA kuota/pricing.
+Satu user bisa punya banyak board; tiap board punya satu tautan share
+yang terbuka penuh (lihat + kontrol device) bagi siapa pun yang login.
+S6 kuota dan S7 branding DIBATALKAN.
 
-### S5: Berbagi dashboard read-only
+### S5: Berbagi board terbuka (wajib login, tanpa peran)
 
-Deskripsi: tabel `shares(id, dashboard_id, token, role, created_at)`,
-`role` selalu `viewer` di v1. Endpoint publik `GET /s/{token}` membaca
-dashboard + widget tanpa login (tanpa daftar device, tanpa tulis).
-Token acak 32 char, dapat dicabut (DELETE).
-
-Kriteria:
-- [ ] link `/s/{token}` tampil read-only tanpa sesi
-- [ ] token salah/dicabut → 404, tidak bocor keberadaan dashboard
-- [ ] pemilik bisa cabut kapan saja, langsung tidak berlaku
-
-Verifikasi: `cargo test` (buat → baca publik → cabut → 404).
-
-Berkas: `migrations/*shares*`, `src/storage/*`, `src/http/mod.rs`. Estimasi: M. Dependensi: Task 10.
-
-### S6: Kuota paket
-
-Deskripsi: batas per user yang bisa dipegang operator: maks device dan
-maks widget per dashboard (konstanta config, misal 10 device, 50 widget).
-Create yang melebihi batas gagal dengan 409 + pesan upgrade, bukan 500.
+Deskripsi: tabel `shares(token PK, dashboard_id, created_at)`, satu
+tautan per board. Endpoint publik `GET /share/{token}` membaca dashboard
++ widget + nama device (tanpa user_id pemilik). Token share berlaku
+sebagai Bearer untuk pin/history/status/stream device-device yang
+terikat widget board itu (lihat + kirim perintah). Halaman webapp
+`/s/{token}` mewajibkan login lalu membuka board penuh. Struktur board
+(tambah/ubah/hapus widget) tetap milik pemilik. Tanpa peran viewer,
+tanpa branding, tanpa kuota.
 
 Kriteria:
-- [ ] create device ke-11 ditolak 409 dengan pesan jelas
-- [ ] create widget ke-51 per dashboard ditolak 409
-- [ ] batas dari satu tempat konfigurasi, bukan angka tersebar
+- [x] `GET /share/{token}` tanpa sesi: board + widget + nama device, tanpa user_id
+- [x] bearer share = cakupan device board itu saja (di luar cakupan → 404)
+- [x] token salah/dicabut → 404/401, tidak bocor keberadaan dashboard
+- [x] pemilik bisa cabut kapan saja, langsung tidak berlaku (board hapus ikut cabut)
+- [x] halaman share wajib login (`/login?next=/s/{token}`)
 
-Verifikasi: `cargo test` (isi sampai batas, satu lebihnya ditolak).
+Verifikasi: `cargo test --lib http` (buat → baca publik → cakupan → cabut → mati).
 
-Berkas: `src/config.rs`, `src/http/mod.rs`. Estimasi: S. Dependensi: tidak ada.
+Berkas: `migrations/0002_shares.sql`, `src/storage/*`, `src/http/mod.rs`. Dependensi: Task 10.
 
-### S7: Branding per pelanggan
+### S6: Kuota paket — DIBATALKAN (open untuk semua, tanpa batas paket)
 
-Deskripsi: tabel `branding(user_id PK, app_name, logo_url, accent)`,
-endpoint auth `GET/PUT /branding` untuk milik sendiri. Webapp memakai
-ini setelah login (judul, logo, aksen); halaman login pakai brand default.
-
-Kriteria:
-- [ ] tiap user bisa simpan 1 set brand miliknya sendiri
-- [ ] user lain tidak bisa baca/ubah brand orang (404 silang)
-- [ ] `accent` tidak valid (bukan hex 6 digit) ditolak 400
-
-Verifikasi: `cargo test` (CRUD + isolasi antar user).
-
-Berkas: `migrations/*branding*`, `src/storage/*`, `src/http/mod.rs`. Estimasi: M. Dependensi: Task 9.
+### S7: Branding per pelanggan — DIBATALKAN (satu brand VOLTA. untuk semua)
 
 ### Checkpoint 5
 
-- [ ] Berbagi read-only jalan end-to-end (buat → buka tanpa login → cabut)
-- [ ] Kuota menolak dengan pesan upgrade, bukan error mentah
-- [ ] Branding tersimpan per user dan terisolasi
+- [x] Berbagi terbuka jalan end-to-end (buat → buka wajib login → kontrol → cabut)
+- [ ] S6/S7 tidak dibangun sesuai keputusan open
 
 ## Risiko dan Mitigasi
 

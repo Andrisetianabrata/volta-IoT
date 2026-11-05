@@ -138,12 +138,12 @@ flowchart LR
     F6["Health · 0/2"] --> S6["Broker/db/mailer<br/>Statistik admin"]
     F7["Settings · 0/4"] --> S7["Tema gelap/terang<br/>Akun + keluar<br/>Info server<br/>Status WS + sambung ulang"]
     F8["Widget HTML · 0/3"] --> S8["Render sandbox<br/>Bridge postMessage<br/>Batas 64 KB"]
-    F9["SaaS · 0/3"] --> S9["Link berbagi read-only<br/>Branding per user<br/>Mode viewer"]
+    F9["Berbagi terbuka · 3/3"] --> S9["Tautan per board<br/>Wajib login<br/>Lihat + kontrol"]
 ```
 
 Pemetaan ke task: Auth→W2 · Monitor→W3–W6 · Devices→W4+W7+W8 (provisioning gabung ke halaman Devices, tanpa tab sendiri) ·
 Dashboards→W10+W12 · Health→W3 · Settings→W14 ·
-Widget HTML→W11 · SaaS→S5–S7+W13.
+Widget HTML→W11 · Berbagi terbuka→S5+W13 (tanpa branding/kuota, keputusan open).
 
 ## Task List
 
@@ -397,30 +397,33 @@ eksplisit menulis yang berubah via PUT/POST/DELETE.
 
 **Estimated scope:** M (4 file)
 
-### Task W13: Wajah SaaS (branding, berbagi, peran)
+### Task W13: Berbagi board terbuka (keputusan pemilik: open untuk semua)
 
-**Description:** Terapkan branding per user (judul, logo, aksen dari
-`GET /branding`), halaman publik read-only `/s/[token]` (tanpa login,
-tanpa kontrol tulis), dan badge peran: viewer tidak melihat tombol
-tulis/hapus di mana pun.
+**Description:** Satu tautan share per board (`POST/GET/DELETE
+/dashboards/:id/share`), halaman `/s/[token]` WAJIB login
+(`?next=` kembali setelah masuk) lalu membuka board penuh: pin live
+via WS dengan token share, kirim perintah + history lewat BFF
+`/api/share/[token]/...`. Token share berlaku sebagai Bearer untuk
+device-device yang terikat widget board itu saja. Struktur board tetap
+milik pemilik. TANPA peran viewer, TANPA branding, TANPA kuota.
 
 **Acceptance criteria:**
-- [ ] Ganti brand → judul, logo, aksen ikut berubah setelah login ulang
-- [ ] Link berbagi dibuka tanpa login: baca saja, tanpa tombol tulis
-- [ ] Token dicabut → halaman berbagi jadi 404 yang jelas
+- [x] Buka `/s/{token}` tanpa sesi → dialihkan ke login, kembali setelah masuk
+- [x] Token share: lihat + kontrol device dalam cakupan; di luar cakupan → 404
+- [x] Token dicabut → halaman berbagi jelas tidak valid
+- [x] Tiap board indicasi "terbagikan" di daftar; satu board = satu tautan
 
 **Verification:**
-- [ ] Playwright: buat share → buka tanpa sesi → read-only → cabut → 404
-- [ ] Manual: cek viewer tidak bisa memicu satu pun request tulis (pantau network)
+- [x] `cargo test --lib http` (buat → baca publik → cakupan → cabut → mati)
+- [ ] Playwright: buat share → buka wajib login → kontrol → cabut → tidak valid
 
-**Dependencies:** W8 (detail sebagai basis view publik), S5 + S7 server
+**Dependencies:** W8 (detail sebagai basis view), S5 server (selesai)
 
 **Files likely touched:**
 - `webapp/app/s/[token]/page.tsx`
-- `webapp/components/brand-provider.tsx`
-- `webapp/lib/permissions.ts` (satu gerbang `bolehNulis`)
-
-**Estimated scope:** M (3 file)
+- `webapp/components/public-board-client.tsx`
+- `webapp/components/share-section.tsx`
+- `webapp/app/api/share/[token]/[...rest]/route.ts`
 
 ### Task W14: Pengaturan (tema, akun, server)
 

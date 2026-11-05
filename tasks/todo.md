@@ -50,14 +50,13 @@ Rincian kriteria dan verifikasi ada di `tasks/plan.md`, checklist ini hanya stat
 
 - [x] Semua kriteria di plan.md terpenuhi
 
-## Fase 5: SaaS (baru)
+## Fase 5: Berbagi terbuka (keputusan pemilik: open untuk semua)
 
-- [ ] S5: Berbagi dashboard read-only (M)
-- [ ] S6: Kuota paket (S)
-- [ ] S7: Branding per pelanggan (M)
+- [x] S5: Berbagi board terbuka — satu tautan per board, wajib login, lihat + kontrol (S)
+- [ ] S6: Kuota paket — DIBATALKAN (open, tanpa batas)
+- [ ] S7: Branding per pelanggan — DIBATALKAN (satu brand VOLTA.)
 
 ## Checkpoint 5
 
-- [ ] Berbagi read-only jalan end-to-end (buat → buka tanpa login → cabut)
-- [ ] Kuota menolak dengan pesan upgrade, bukan error mentah
-- [ ] Branding tersimpan per user dan terisolasi
+- [x] Berbagi terbuka jalan end-to-end (buat → buka wajib login → cabut)
+- [ ] S6/S7 tidak dibangun sesuai keputusan open

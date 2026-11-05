@@ -61,25 +61,80 @@ pub struct StreamQuery {
     pub token: Option<String>,
 }
 
-fn stream_token(headers: &HeaderMap, q: &StreamQuery) -> Result<String, ApiError> {
-    if let Ok(t) = bearer(headers) {
-        return Ok(t);
-    }
-    q.token
-        .clone()
-        .filter(|t| !t.is_empty())
-        .ok_or_else(|| ApiError::unauthorized("missing bearer"))
+/// Cakupan tautan share terbuka: board + device yang terikat widget-nya.
+/// Share bersifat terbuka (lihat + kontrol), tanpa peran read-only/branding/kuota.
+struct ShareScope {
+    dashboard_id: String,
+    devices: Vec<String>,
 }
 
-async fn uid_for_stream(
-    state: &AppState,
-    headers: &HeaderMap,
-    q: &StreamQuery,
-) -> Result<String, ApiError> {
-    let tok = stream_token(headers, q)?;
-    auth::user_id_for_session(state.db.as_ref(), &tok)
+async fn share_scope(db: &SqliteStorage, token: &str) -> Result<ShareScope, ApiError> {
+    let sh = db
+        .get_share(token)
         .await
-        .map_err(|_| ApiError::unauthorized("invalid session"))
+        .map_err(|_| ApiError::not_found("tautan tidak valid"))?
+        .ok_or_else(|| ApiError::not_found("tautan tidak valid"))?;
+    let widgets = db
+        .list_widgets(&sh.dashboard_id)
+        .await
+        .map_err(|_| ApiError::not_found("tautan tidak valid"))?;
+    let mut devices = Vec::new();
+    for w in &widgets {
+        if let Ok(cfg) = serde_json::from_str::<serde_json::Value>(&w.config) {
+            if let Some(d) = cfg.get("device").and_then(|v| v.as_str()) {
+                if !d.is_empty() && !devices.iter().any(|x| x == d) {
+                    devices.push(d.to_string());
+                }
+            }
+        }
+    }
+    Ok(ShareScope { dashboard_id: sh.dashboard_id, devices })
+}
+
+/// Aktor pengakses device: pemilik (sesi login) atau pemegang tautan share.
+enum Actor {
+    User(String),
+    Share(ShareScope),
+}
+
+async fn actor(state: &AppState, headers: &HeaderMap, query_token: Option<&str>) -> Result<Actor, ApiError> {
+    if let Ok(tok) = bearer(headers) {
+        if let Ok(u) = auth::user_id_for_session(state.db.as_ref(), &tok).await {
+            return Ok(Actor::User(u));
+        }
+        if let Ok(scope) = share_scope(state.db.as_ref(), &tok).await {
+            return Ok(Actor::Share(scope));
+        }
+        return Err(ApiError::unauthorized("invalid session"));
+    }
+    if let Some(t) = query_token.filter(|t| !t.is_empty()) {
+        if let Ok(scope) = share_scope(state.db.as_ref(), t).await {
+            return Ok(Actor::Share(scope));
+        }
+        return Err(ApiError::unauthorized("invalid session"));
+    }
+    Err(ApiError::unauthorized("missing bearer"))
+}
+
+async fn check_device(state: &AppState, actor: &Actor, id: &str) -> Result<(), ApiError> {
+    let dev = state
+        .db
+        .get_device(id)
+        .await?
+        .ok_or_else(|| ApiError::not_found("device tidak ada"))?;
+    match actor {
+        Actor::User(u) => {
+            if dev.user_id != *u {
+                return Err(ApiError::not_found("device tidak ada"));
+            }
+        }
+        Actor::Share(scope) => {
+            if !scope.devices.iter().any(|d| d == id) {
+                return Err(ApiError::not_found("device tidak ada"));
+            }
+        }
+    }
+    Ok(())
 }
 
 #[derive(Deserialize)]
@@ -167,6 +222,7 @@ async fn update_dashboard(State(s): State<Arc<AppState>>, headers: HeaderMap, Pa
 async fn delete_dashboard(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>) -> Result<impl IntoResponse, ApiError> {
     let u = uid(&s, &headers).await?;
     owned_dashboard(s.db.as_ref(), &u, &id).await?;
+    s.db.delete_share_by_dashboard(&id).await?;
     s.db.delete_dashboard(&id).await?;
     Ok(Json(serde_json::json!({"ok": true})))
 }
@@ -198,20 +254,14 @@ async fn delete_device(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(
 }
 
 async fn list_pins(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>) -> Result<impl IntoResponse, ApiError> {
-    let u = uid(&s, &headers).await?;
-    let dev = s.db.get_device(&id).await?.ok_or_else(|| ApiError::not_found("device tidak ada"))?;
-    if dev.user_id != u {
-        return Err(ApiError::not_found("device tidak ada"));
-    }
+    let a = actor(&s, &headers, None).await?;
+    check_device(&s, &a, &id).await?;
     Ok(Json(s.db.list_pins(&id).await?))
 }
 
 async fn get_pin(State(s): State<Arc<AppState>>, headers: HeaderMap, Path((id, pin)): Path<(String, String)>) -> Result<impl IntoResponse, ApiError> {
-    let u = uid(&s, &headers).await?;
-    let dev = s.db.get_device(&id).await?.ok_or_else(|| ApiError::not_found("device tidak ada"))?;
-    if dev.user_id != u {
-        return Err(ApiError::not_found("device tidak ada"));
-    }
+    let a = actor(&s, &headers, None).await?;
+    check_device(&s, &a, &id).await?;
     let p = s.db.get_pin(&id, &pin).await?.ok_or_else(|| ApiError::not_found("pin tidak ada"))?;
     Ok(Json(p))
 }
@@ -222,11 +272,8 @@ pub struct PinValue {
 }
 
 async fn put_pin(State(s): State<Arc<AppState>>, headers: HeaderMap, Path((id, pin)): Path<(String, String)>, Json(b): Json<PinValue>) -> Result<impl IntoResponse, ApiError> {
-    let u = uid(&s, &headers).await?;
-    let dev = s.db.get_device(&id).await?.ok_or_else(|| ApiError::not_found("device tidak ada"))?;
-    if dev.user_id != u {
-        return Err(ApiError::not_found("device tidak ada"));
-    }
+    let a = actor(&s, &headers, None).await?;
+    check_device(&s, &a, &id).await?;
     s.cmds.send(CmdRequest { device_id: id.clone(), pin: pin.clone(), value: b.value.clone() }, std::time::Duration::from_secs(2)).await.map_err(|e| ApiError::bad_request("CMD_TIMEOUT", e))?;
     s.stats.inc_cmds();
     Ok(Json(serde_json::json!({"ok": true})))
@@ -240,21 +287,15 @@ pub struct HistoryQuery {
 }
 
 async fn history(State(s): State<Arc<AppState>>, headers: HeaderMap, Path((id, pin)): Path<(String, String)>, Query(q): Query<HistoryQuery>) -> Result<impl IntoResponse, ApiError> {
-    let u = uid(&s, &headers).await?;
-    let dev = s.db.get_device(&id).await?.ok_or_else(|| ApiError::not_found("device tidak ada"))?;
-    if dev.user_id != u {
-        return Err(ApiError::not_found("device tidak ada"));
-    }
+    let a = actor(&s, &headers, None).await?;
+    check_device(&s, &a, &id).await?;
     let rows = s.db.query_history(&id, &pin, q.from.unwrap_or(0), q.to.unwrap_or(i64::MAX), q.limit.unwrap_or(500).min(5000)).await?;
     Ok(Json(rows))
 }
 
 async fn stream(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>, Query(q): Query<StreamQuery>, ws: WebSocketUpgrade) -> Result<impl IntoResponse, ApiError> {
-    let u = uid_for_stream(&s, &headers, &q).await?;
-    let dev = s.db.get_device(&id).await?.ok_or_else(|| ApiError::not_found("device tidak ada"))?;
-    if dev.user_id != u {
-        return Err(ApiError::not_found("device tidak ada"));
-    }
+    let a = actor(&s, &headers, q.token.as_deref()).await?;
+    check_device(&s, &a, &id).await?;
     let mut rx = s.bus.subscribe();
     Ok(ws.on_upgrade(move |mut socket| async move {
         use axum::extract::ws::Message;
@@ -337,6 +378,60 @@ async fn delete_widget(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(
     Ok(Json(serde_json::json!({"ok": true})))
 }
 
+/// Buat (atau ambil yang ada) tautan share terbuka untuk satu board.
+/// Satu board = satu tautan; pemilik mengelola, siapa pun yang login bisa buka.
+async fn create_share(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>) -> Result<impl IntoResponse, ApiError> {
+    let u = uid(&s, &headers).await?;
+    owned_dashboard(s.db.as_ref(), &u, &id).await?;
+    if let Some(sh) = s.db.get_share_by_dashboard(&id).await? {
+        return Ok((StatusCode::OK, Json(serde_json::json!({"token": sh.token}))));
+    }
+    let token = uuid::Uuid::new_v4().simple().to_string();
+    s.db.create_share(&token, &id, now_unix()).await?;
+    Ok((StatusCode::CREATED, Json(serde_json::json!({"token": token}))))
+}
+
+async fn get_share_state(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>) -> Result<impl IntoResponse, ApiError> {
+    let u = uid(&s, &headers).await?;
+    owned_dashboard(s.db.as_ref(), &u, &id).await?;
+    let sh = s
+        .db
+        .get_share_by_dashboard(&id)
+        .await?
+        .ok_or_else(|| ApiError::not_found("belum dibagikan"))?;
+    Ok(Json(serde_json::json!({"token": sh.token})))
+}
+
+async fn delete_share(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>) -> Result<impl IntoResponse, ApiError> {
+    let u = uid(&s, &headers).await?;
+    owned_dashboard(s.db.as_ref(), &u, &id).await?;
+    s.db.delete_share_by_dashboard(&id).await?;
+    Ok(Json(serde_json::json!({"ok": true})))
+}
+
+/// Board publik via tautan (halaman /s/ di webapp mewajibkan login;
+/// respons ini sendiri tanpa user_id pemilik).
+async fn public_board(State(s): State<Arc<AppState>>, Path(token): Path<String>) -> Result<impl IntoResponse, ApiError> {
+    let scope = share_scope(s.db.as_ref(), &token).await?;
+    let dash = s
+        .db
+        .get_dashboard(&scope.dashboard_id)
+        .await?
+        .ok_or_else(|| ApiError::not_found("tautan tidak valid"))?;
+    let widgets = s.db.list_widgets(&scope.dashboard_id).await?;
+    let mut devices = Vec::new();
+    for d in &scope.devices {
+        if let Ok(Some(dev)) = s.db.get_device(d).await {
+            devices.push(serde_json::json!({"id": dev.id, "name": dev.name}));
+        }
+    }
+    Ok(Json(serde_json::json!({
+        "dashboard": {"id": dash.id, "name": dash.name},
+        "widgets": widgets,
+        "devices": devices,
+    })))
+}
+
 #[derive(Deserialize)]
 pub struct OtaBody {
     pub url: String,
@@ -373,11 +468,8 @@ async fn favicon() -> impl IntoResponse {
 }
 
 async fn device_status(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>) -> Result<impl IntoResponse, ApiError> {
-    let u = uid(&s, &headers).await?;
-    let dev = s.db.get_device(&id).await?.ok_or_else(|| ApiError::not_found("device tidak ada"))?;
-    if dev.user_id != u {
-        return Err(ApiError::not_found("device tidak ada"));
-    }
+    let a = actor(&s, &headers, None).await?;
+    check_device(&s, &a, &id).await?;
     let st = s.db.get_status(&id).await?;
     Ok(Json(serde_json::json!({
         "online": st.as_ref().map(|x| x.online != 0).unwrap_or(false),
@@ -401,6 +493,8 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/dashboards/:id", put(update_dashboard).delete(delete_dashboard))
         .route("/dashboards/:id/widgets", get(list_widgets).post(create_widget))
         .route("/dashboards/:id/widgets/:wid", put(update_widget).delete(delete_widget))
+        .route("/dashboards/:id/share", post(create_share).get(get_share_state).delete(delete_share))
+        .route("/share/:token", get(public_board))
         .route("/devices", get(list_devices).post(create_device))
         .route("/devices/:id", delete(delete_device))
         .route("/devices/:id/status", get(device_status))
@@ -466,15 +560,19 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn stream_token_accepts_query_param() {
-        let q_none = StreamQuery { token: None };
-        assert!(stream_token(&HeaderMap::new(), &q_none).is_err());
-        let q = StreamQuery { token: Some("abc".to_string()) };
-        assert_eq!(stream_token(&HeaderMap::new(), &q).unwrap(), "abc");
+    async fn actor_rejects_missing_or_invalid_credentials() {
+        let db = Arc::new(SqliteStorage::new(":memory:", 5000).await.unwrap());
+        let state = Arc::new(AppState::new(db, mailer::MailerConfig::default()));
+        // tanpa kredensial apa pun
+        assert!(actor(&state, &HeaderMap::new(), None).await.is_err());
+        // bearer ngawur
         let mut h = HeaderMap::new();
-        h.insert("authorization", "Bearer hdr".parse().unwrap());
-        let q2 = StreamQuery { token: Some("qry".to_string()) };
-        assert_eq!(stream_token(&h, &q2).unwrap(), "hdr");
+        h.insert("authorization", "Bearer ngawur".parse().unwrap());
+        assert!(actor(&state, &h, None).await.is_err());
+        // query token ngawur
+        assert!(actor(&state, &HeaderMap::new(), Some("ngawur")).await.is_err());
+        // jalur positif (sesi → User, share → Share) tercakup di test HTTP
+        // widget_crud_enforces_ownership dan share_token_opens_board_scoped_to_its_devices.
     }
 
     async fn authed(a: &Router, email: &str) -> String {
@@ -535,6 +633,75 @@ mod tests {
         let (s, list) = call(&a, "GET", &format!("/dashboards/{did}/widgets"), Some(&t1), None).await;
         assert_eq!(s, StatusCode::OK);
         assert!(list.as_array().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn share_token_opens_board_scoped_to_its_devices() {
+        let a = app().await;
+        let (t1, t2) = (authed(&a, "s1@x.co").await, authed(&a, "s2@x.co").await);
+        // device milik t1
+        let (_, dd) = call(&a, "POST", "/devices", Some(&t1), Some(serde_json::json!({"name":"d1"}))).await;
+        let dev = dd["device_id"].as_str().unwrap().to_string();
+        // device lain milik t1, TIDAK diikat ke board
+        let (_, dd2) = call(&a, "POST", "/devices", Some(&t1), Some(serde_json::json!({"name":"d2"}))).await;
+        let dev2 = dd2["device_id"].as_str().unwrap().to_string();
+        // board + widget mengikat dev
+        let (_, db) = call(&a, "POST", "/dashboards", Some(&t1), Some(serde_json::json!({"name":"b1"}))).await;
+        let did = db["id"].as_str().unwrap();
+        let cfg = format!("{{\"device\":\"{dev}\"}}");
+        let (s, _) = call(&a, "POST", &format!("/dashboards/{did}/widgets"), Some(&t1), Some(serde_json::json!({"kind":"gauge","pin":"t1","config":cfg}))).await;
+        assert_eq!(s, StatusCode::CREATED);
+
+        // pemilik lain tidak bisa share board ini
+        let (s, _) = call(&a, "POST", &format!("/dashboards/{did}/share"), Some(&t2), None).await;
+        assert_eq!(s, StatusCode::NOT_FOUND);
+
+        // buat share: idempoten, token sama bila dipanggil ulang
+        let (s, sh) = call(&a, "POST", &format!("/dashboards/{did}/share"), Some(&t1), None).await;
+        assert!(s == StatusCode::CREATED || s == StatusCode::OK);
+        let tok = sh["token"].as_str().unwrap().to_string();
+        let (s, sh2) = call(&a, "POST", &format!("/dashboards/{did}/share"), Some(&t1), None).await;
+        assert_eq!(s, StatusCode::OK);
+        assert_eq!(sh2["token"].as_str().unwrap(), tok);
+        let (s, st) = call(&a, "GET", &format!("/dashboards/{did}/share"), Some(&t1), None).await;
+        assert_eq!(s, StatusCode::OK);
+        assert_eq!(st["token"].as_str().unwrap(), tok);
+
+        // publik tanpa sesi bisa baca board+widget+device, tanpa user_id pemilik
+        let (s, pb) = call(&a, "GET", &format!("/share/{tok}"), None, None).await;
+        assert_eq!(s, StatusCode::OK);
+        assert_eq!(pb["dashboard"]["id"].as_str().unwrap(), did);
+        assert!(pb["dashboard"].get("user_id").is_none());
+        assert_eq!(pb["widgets"].as_array().unwrap().len(), 1);
+        assert_eq!(pb["devices"].as_array().unwrap().len(), 1);
+        assert_eq!(pb["devices"][0]["id"].as_str().unwrap(), dev);
+
+        // token share berlaku sebagai bearer untuk device dalam cakupan
+        let (s, pins) = call(&a, "GET", &format!("/devices/{dev}/pins"), Some(&tok), None).await;
+        assert_eq!(s, StatusCode::OK);
+        assert!(pins.as_array().unwrap().is_empty());
+        let (s, _) = call(&a, "GET", &format!("/devices/{dev}/status"), Some(&tok), None).await;
+        assert_eq!(s, StatusCode::OK);
+        let (s, _) = call(&a, "GET", &format!("/devices/{dev}/history/t1?from=0&to=9999999999"), Some(&tok), None).await;
+        assert_eq!(s, StatusCode::OK);
+
+        // device di luar cakupan tetap 404 walau token share valid
+        let (s, _) = call(&a, "GET", &format!("/devices/{dev2}/pins"), Some(&tok), None).await;
+        assert_eq!(s, StatusCode::NOT_FOUND);
+
+        // token ngawur tetap 401
+        let (s, _) = call(&a, "GET", &format!("/devices/{dev}/pins"), Some("ngawur"), None).await;
+        assert_eq!(s, StatusCode::UNAUTHORIZED);
+        let (s, _) = call(&a, "GET", "/share/ngawur", None, None).await;
+        assert_eq!(s, StatusCode::NOT_FOUND);
+
+        // cabut: publik + bearer share ikut mati
+        let (s, _) = call(&a, "DELETE", &format!("/dashboards/{did}/share"), Some(&t1), None).await;
+        assert_eq!(s, StatusCode::OK);
+        let (s, _) = call(&a, "GET", &format!("/share/{tok}"), None, None).await;
+        assert_eq!(s, StatusCode::NOT_FOUND);
+        let (s, _) = call(&a, "GET", &format!("/devices/{dev}/pins"), Some(&tok), None).await;
+        assert_eq!(s, StatusCode::UNAUTHORIZED);
     }
 
     #[tokio::test]

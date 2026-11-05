@@ -143,6 +143,20 @@ impl Storage for SqliteStorage {
     async fn list_widgets(&self, dashboard_id: &str) -> Result<Vec<Widget>, sqlx::Error> {
         sqlx::query_as("SELECT * FROM dashboard_widgets WHERE dashboard_id=?").bind(dashboard_id).fetch_all(&self.pool).await
     }
+    async fn create_share(&self, token: &str, dashboard_id: &str, now: i64) -> Result<(), sqlx::Error> {
+        sqlx::query("INSERT INTO shares(token,dashboard_id,created_at) VALUES(?,?,?)")
+            .bind(token).bind(dashboard_id).bind(now)
+            .execute(&self.pool).await.map(|_| ())
+    }
+    async fn get_share(&self, token: &str) -> Result<Option<Share>, sqlx::Error> {
+        sqlx::query_as("SELECT * FROM shares WHERE token=?").bind(token).fetch_optional(&self.pool).await
+    }
+    async fn get_share_by_dashboard(&self, dashboard_id: &str) -> Result<Option<Share>, sqlx::Error> {
+        sqlx::query_as("SELECT * FROM shares WHERE dashboard_id=?").bind(dashboard_id).fetch_optional(&self.pool).await
+    }
+    async fn delete_share_by_dashboard(&self, dashboard_id: &str) -> Result<(), sqlx::Error> {
+        sqlx::query("DELETE FROM shares WHERE dashboard_id=?").bind(dashboard_id).execute(&self.pool).await.map(|_| ())
+    }
     async fn enqueue_mail(&self, to: &str, subject: &str, body: &str, now: i64) -> Result<i64, sqlx::Error> {
         let r = sqlx::query("INSERT INTO mail_queue(to_addr,subject,body,attempts,next_try,status) VALUES(?,?,?,0,?,'pending')")
             .bind(to).bind(subject).bind(body).bind(now)

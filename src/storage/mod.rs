@@ -101,6 +101,13 @@ pub struct DeviceStatus {
     pub updated_at: i64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, sqlx::FromRow)]
+pub struct Share {
+    pub token: String,
+    pub dashboard_id: String,
+    pub created_at: i64,
+}
+
 #[allow(async_fn_in_trait)]
 pub trait Storage: Send + Sync + 'static {
     async fn create_user(&self, id: &str, email: &str, pass_hash: &str, now: i64) -> Result<(), sqlx::Error>;
@@ -136,6 +143,11 @@ pub trait Storage: Send + Sync + 'static {
     async fn update_widget(&self, id: &str, kind: &str, pin: &str, config: &str) -> Result<(), sqlx::Error>;
     async fn delete_widget(&self, id: &str) -> Result<(), sqlx::Error>;
     async fn list_widgets(&self, dashboard_id: &str) -> Result<Vec<Widget>, sqlx::Error>;
+
+    async fn create_share(&self, token: &str, dashboard_id: &str, now: i64) -> Result<(), sqlx::Error>;
+    async fn get_share(&self, token: &str) -> Result<Option<Share>, sqlx::Error>;
+    async fn get_share_by_dashboard(&self, dashboard_id: &str) -> Result<Option<Share>, sqlx::Error>;
+    async fn delete_share_by_dashboard(&self, dashboard_id: &str) -> Result<(), sqlx::Error>;
 
     async fn enqueue_mail(&self, to: &str, subject: &str, body: &str, now: i64) -> Result<i64, sqlx::Error>;
     async fn claim_mail_batch(&self, limit: i64, now: i64) -> Result<Vec<MailItem>, sqlx::Error>;

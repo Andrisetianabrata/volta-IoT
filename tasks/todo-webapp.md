@@ -10,8 +10,8 @@ Install/Download ke GitHub). Halaman tembaga lama diarsipkan di
 
 ## Fase 0 — Fondasi
 
-- [x] Task W1: Scaffold webapp + sistem desain dua tema (M) — selesai
-- [x] Task W2: BFF proxy + auth (M) — selesai
+- [ ] Task W1: Scaffold webapp + sistem desain dua tema (M) — selesai
+- [ ] Task W2: BFF proxy + auth (M) — selesai
 
 ## Checkpoint A
 
@@ -21,10 +21,10 @@ Install/Download ke GitHub). Halaman tembaga lama diarsipkan di
 
 ## Fase 1 — Inti monitoring
 
-- [x] Task W3: Shell + strip kesehatan (S) — kode selesai, tsc hijau; restyle Open plane (sidebar 240px, KPI tanpa kotak); verifikasi visual + lawan server asli di Checkpoint A
-- [x] Task W4: Daftar + pilih device (S) — kode selesai: satu layar kelola (daftar + status jujur + tambah + token sekali tampil + hapus 2 tahap, W7 gabung); verifikasi live di Checkpoint B
-- [ ] Task W5: Pin live + kirim perintah (M)
-- [ ] Task W6: Grafik history (M)
+- [ ] Task W3: Shell + strip kesehatan (S) — kode selesai, tsc hijau; restyle Open plane (sidebar 240px, KPI tanpa kotak); verifikasi visual + lawan server asli di Checkpoint A
+- [ ] Task W4: Daftar + pilih device (S) — kode selesai: satu layar kelola (daftar + status jujur + tambah + token sekali tampil + hapus 2 tahap, W7 gabung); verifikasi live di Checkpoint B
+- [ ] Task W5: Pin live + kirim perintah (M) — MonitorClient: pilih device, daftar pin live WS + reconnect, CommandForm, feed 15 event
+- [ ] Task W6: Grafik history (M) — HistoryPanel (1H/24H, skip non-angka jujur, PinChart aksen tembaga linear); dipakai Monitor + detail device + widget
 
 ## Checkpoint B
 
@@ -33,14 +33,14 @@ Install/Download ke GitHub). Halaman tembaga lama diarsipkan di
 
 ## Fase 2 — Lengkap
 
-- [x] Task W7: Provisioning (S) — gabung ke W4, tanpa tab/rute sendiri (`/provision` redirect ke `/devices`); token sekali tampil + salin + hapus 2 tahap jadi
-- [ ] Task W8: Halaman detail device (S)
-- [ ] Task W9: Kontrol OTA (XS)
-- [x] Task W10: Dashboard dinamis ala no-code engine (M) — kode selesai: daftar/buat/hapus board, kanvas multi-device (1 WS per device), 7 renderer + kartu jujur, tambah widget via UI (pilih kind + device + pin); verifikasi live lawan server asli di Checkpoint B
-- [ ] Task W11: Widget HTML kustom sandbox (S)
-- [ ] Task W12: Editor visual drag-and-drop + grid responsif (M)
-- [ ] Task W13: Wajah SaaS — branding, berbagi, peran (M)
-- [ ] Task W14: Pengaturan — tema, akun, server (S)
+- [ ] Task W7: Provisioning (S) — gabung ke W4, tanpa tab/rute sendiri (`/provision` redirect ke `/devices`); token sekali tampil + salin + hapus 2 tahap jadi
+- [ ] Task W8: Halaman detail device (S) — /devices/[id]: breadcrumb ID mono, status + terlihat, tabel pin, perintah, history, OTA, hapus 2 tahap
+- [ ] Task W9: Kontrol OTA (XS) — OtaControls: mulai (URL+versi) / stop, hasil teks; endpoint server terverifikasi ada
+- [ ] Task W10: Dashboard dinamis ala no-code engine (M) — kode selesai: daftar/buat/hapus board, kanvas multi-device (1 WS per device), 7 renderer + kartu jujur, tambah widget via UI (pilih kind + device + pin); verifikasi live lawan server asli di Checkpoint B
+- [ ] Task W11: Widget HTML kustom sandbox (S) — html-widget + widget-bridge (postMessage cmd/pin, sandbox tanpa same-origin), kind html di registry + form + validasi 64 KB (cocok MAX_WIDGET_CONFIG_LEN server)
+- [ ] Task W12: Editor visual drag-and-drop + grid responsif (M) — CanvasEditor (react-grid-layout legacy + WidthProvider, breakpoint lg/md/sm/xs/xxs → 12/10/6/4/2, gagang ≥44px + touch-action none, mode Lihat/Ubah, Simpan eksplisit via PUT config, hapus per widget); BoardView toggle di detail board
+- [ ] Task W13: Berbagi board terbuka (M) — ShareSection (buat/salin/cabut per board) + badge "terbagikan" + halaman /s/[token] wajib login + live/kontrol penuh via token share; TANPA peran viewer, TANPA branding, TANPA kuota (keputusan open)
+- [ ] Task W14: Pengaturan — tema, akun, server (S) — tema toggle + akun/logout + info server + WsCheck uji token/stream
 
 ## Checkpoint C
 
