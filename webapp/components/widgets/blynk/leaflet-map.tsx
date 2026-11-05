@@ -16,13 +16,13 @@ function VoltaPin() {
 }
 
 // Browser-only: dimuat via next/dynamic ssr:false dari iface.tsx.
-export default function LeafletMap() {
+export default function LeafletMap({ className = "h-56 w-full" }: { className?: string }) {
   return (
     <MapContainer
       center={JAKARTA}
       zoom={13}
       scrollWheelZoom={false}
-      className="h-56 w-full"
+      className={className}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
