@@ -451,13 +451,29 @@ terhubung), status koneksi WS + tombol "Sambung ulang" manual.
 #### Task W10: Dashboard dinamis ala no-code engine
 **Description:** Render dashboard murni dari definisi server
 (`GET /dashboards`, `GET /dashboards/{id}/widgets` → `{id, kind, pin,
-config}`), tanpa redeploy saat layout berubah. Registry widget:
-satu file per kind (`widgets/gauge.tsx`, `button.tsx`, `switch.tsx`,
-`slider.tsx`, `labeled-value.tsx`, `led.tsx`, `history-chart.tsx`) +
-manifest (nama, skema config, ukuran default). Posisi/ukuran dibaca dari
-`config` (`{x, y, w, h, label, min, max, unit}`); grid 12 kolom.
-Binding live reuse hook WS Fase 1. Jujur seperti Blynk: *layout dan isi*
-berubah tanpa rilis ulang; *jenis widget baru* tetap butuh kode klien.
+config}`), tanpa redeploy saat layout berubah. Registry widget
+diperluas (keputusan pemilik 2026-11-05, melampaui 7 kind awal):
+controllers = `button, styled-button, slider, vslider, step,
+joystick (2 pin X/Y), zergba, timer, rtc`; displays =
+`labeled-value, led, gauge, lcd, history-chart, terminal, level`;
+notifications = `push` (butuh endpoint rules — belum ada);
+interface = `tabs, menu, table, map` (Leaflet + OSM); others =
+`bridge, webhook, ble (WebBluetooth murni klien), html`.
+Satu sumber kebenaran klien: `webapp/lib/widget-registry.ts`
+(manifest per kind: judul, kategori, peran pin, ukuran default,
+skema field config). Skema config tiap kind: `{device, label,
+x, y, w, h}` + field spesifik (`min/max/unit`, `options`,
+`color`, `url/method`, `html/css/js`); validasi klien =
+JSON valid + ≤ 64 KB (cermin `check_widget_config` server) +
+cek tipe tiap field. Kind `email`/`twitter` DITOLAK masuk
+registry (keputusan pemilik). Satu file renderer per kind
+(`components/widgets/blynk/*.tsx`, gaya Pebble) + manifest.
+Posisi/ukuran dibaca dari `config` (`{x, y, w, h, label, min,
+max, unit}`); grid 12 kolom. Binding live reuse hook WS Fase 1.
+Jujur seperti Blynk: *layout dan isi* berubah tanpa rilis ulang;
+*jenis widget baru* tetap butuh kode klien. Galeri `/widgets`
+hanya pratinjau statis (segel PREVIEW per kartu, Checkpoint C)
+dan tidak dipakai kanvas produksi.
 
 **Acceptance criteria:**
 - [ ] Tambah/hapus/pindah widget via API langsung tercermin tanpa rebuild

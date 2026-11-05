@@ -77,6 +77,10 @@ class VoltaDevice {
     }
   }
 
+  // Nama pin BEBAS: string apa pun ("relay", "t1", "gps", ...).
+  // Konvensi contoh memakai "V0".."V9" ala Blynk, tapi library, topik
+  // MQTT (state/{pin}, cmd/{pin}), dan server memperlakukannya opak —
+  // tidak ada validasi format. Contoh bebas: publishState("soil", "68").
   bool publishState(const char* pin, const char* value) {
     char topic[64];
     snprintf(topic, sizeof(topic), "volta/dev/%s/state/%s", id_, pin);

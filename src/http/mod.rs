@@ -467,6 +467,13 @@ async fn favicon() -> impl IntoResponse {
     )
 }
 
+async fn logo_horizontal() -> impl IntoResponse {
+    (
+        [(axum::http::header::CONTENT_TYPE, "image/svg+xml")],
+        include_bytes!("../../assets/logo/volta-horizontal-reversed.svg"),
+    )
+}
+
 async fn device_status(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(id): Path<String>) -> Result<impl IntoResponse, ApiError> {
     let a = actor(&s, &headers, None).await?;
     check_device(&s, &a, &id).await?;
@@ -477,16 +484,13 @@ async fn device_status(State(s): State<Arc<AppState>>, headers: HeaderMap, Path(
     })))
 }
 
-async fn dashboard() -> impl IntoResponse {
-    (
-        [(axum::http::header::CONTENT_TYPE, "text/html; charset=utf-8")],
-        include_str!("../../dashboard.html"),
-    )
+async fn index() -> impl IntoResponse {
+    Json(serde_json::json!({"name": "VOLTA.", "version": env!("CARGO_PKG_VERSION")}))
 }
 
 pub fn router(state: Arc<AppState>) -> Router {
     Router::new()
-        .route("/", get(dashboard))
+        .route("/", get(index))
         .route("/auth/register", post(register))
         .route("/auth/login", post(login))
         .route("/dashboards", get(list_dashboards).post(create_dashboard))
@@ -507,6 +511,7 @@ pub fn router(state: Arc<AppState>) -> Router {
         .route("/devices/:id/ota/start", post(ota_start))
         .route("/devices/:id/ota/stop", post(ota_stop))
         .route("/favicon.ico", get(favicon))
+        .route("/logo-horizontal.svg", get(logo_horizontal))
         .with_state(state)
 }
 
@@ -552,10 +557,9 @@ mod tests {
         let a = app().await;
         let r = a.oneshot(Request::builder().uri("/").body(Body::empty()).unwrap()).await.unwrap();
         assert_eq!(r.status(), StatusCode::OK);
-        assert!(r.headers()["content-type"].to_str().unwrap().starts_with("text/html"));
+        assert!(r.headers()["content-type"].to_str().unwrap().starts_with("application/json"));
         let b = axum::body::to_bytes(r.into_body(), 1024 * 1024).await.unwrap();
         let s = String::from_utf8(b.to_vec()).unwrap();
-        assert!(s.contains("id=\"canvas\""));
         assert!(s.contains("VOLTA."));
     }
 
