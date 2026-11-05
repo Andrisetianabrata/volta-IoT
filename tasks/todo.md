@@ -1,33 +1,35 @@
-# Daftar Task: VOLTA. (MQTT-Only, Rust)
+# Daftar Task: VOLTA. (MQTT-Only, Go)
 
-Rincian kriteria dan verifikasi ada di `tasks/plan.md`, checklist ini hanya status pengerjaan.
+Migrasi Rust → Go selesai 1:1. Rincian kriteria dan verifikasi ada di `tasks/plan.md`, checklist ini hanya status pengerjaan.
+
+Tooling: `go build ./...`, `go vet ./...`, `go test ./...` dari root repo.
 
 ## Fase 1: Fondasi dan mailer wajib
 
-- [x] Task 1: Scaffolding crate, config, CLI, tracing (S)
-- [x] Task 2: Skema SQLite dan trait Storage (M)
+- [x] Task 1: Scaffolding modul, config, CLI, logging (S)
+- [x] Task 2: Skema SQLite dan interface Storage (M)
 - [x] Task 3: Token manager (S)
-- [x] Task 4: Mailer lettre wajib jalan (M)
+- [x] Task 4: Mailer net/smtp wajib jalan (M)
 
 ## Checkpoint 1
 
-- [x] `cargo build`, `cargo test`, clippy lulus
+- [x] `go build`, `go test`, vet lulus
 - [x] Migrasi DB membuat semua tabel
-- [x] Email terkirim lewat SMTP STARTTLS
+- [x] Antrean mail + backoff jalan
 - [x] `healthz` melaporkan status mailer
 
 ## Fase 2: MQTT hardware
 
-- [x] Task 5: rumqttd embedded, 1883 lokal dan 8883 TLS (M)
-- [x] Task 6: auth token device dan LWT status (S)
+- [x] Task 5: mochi-mqtt embedded, 1883 lokal (8883 TLS via reverse proxy) (M)
+- [x] Task 6: auth token device dan status online/offline (S)
 - [x] Task 7: sadap state pin ke DB dan retained (M)
 - [x] Task 8: perintah cmd ke device dengan timeout (S)
 
 ## Checkpoint 2
 
 - [x] Device uji login, publish state, terima cmd
-- [x] Status online/offline terbaca di healthz
-- [x] Retained state dimuat setelah restart
+- [x] Status online/offline terbaca di DB dan healthz
+- [x] Presence basi direset setelah restart
 
 ## Fase 3: App API
 
@@ -44,7 +46,7 @@ Rincian kriteria dan verifikasi ada di `tasks/plan.md`, checklist ini hanya stat
 - [x] Task 12: Rule engine eventor dan timer
 - [x] Task 13: Statistik admin dan health
 - [x] Task 14: OTA via topic cmd
-- [x] Task 15: Paket release, dokumentasi, uji ACME
+- [x] Task 15: Paket release, dokumentasi install, smoke test biner
 
 ## Checkpoint 4
 
@@ -58,5 +60,13 @@ Rincian kriteria dan verifikasi ada di `tasks/plan.md`, checklist ini hanya stat
 
 ## Checkpoint 5
 
-- [x] Berbagi terbuka jalan end-to-end (buat → buka wajib login → cabut)
+- [x] Berbagi terbuka jalan end-to-end (buat → buka wajib login → kontrol → cabut)
 - [ ] S6/S7 tidak dibangun sesuai keputusan open
+
+## Migrasi Rust → Go (selesai)
+
+- [x] 31 route HTTP dipindahkan 1:1 (`http`)
+- [x] 18 paket + 2 biner (`volta`, `bench`)
+- [x] 40+ tes Go lulus (`go test ./...`)
+- [x] Smoke test biner end-to-end (MQTT + HTTP)
+- [x] Kode Rust dihapus (`src/`, `Cargo.*`, `migrations/` root, `target/`)

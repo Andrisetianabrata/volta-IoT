@@ -2,19 +2,19 @@
 
 ![VOLTA.](assets/logo/volta-horizontal.svg)
 
-Server IoT MQTT-only yang dibangun ulang dengan Rust. Perangkat keras berkomunikasi via MQTT, server menyimpan state pin, dan aplikasi mengambil data lewat HTTPS REST dan WebSocket. Protokol binary TCP lama tidak dipakai.
+Server IoT MQTT-only yang dibangun dengan Go. Perangkat keras berkomunikasi via MQTT, server menyimpan state pin, dan aplikasi mengambil data lewat HTTPS REST dan WebSocket. Protokol binary TCP lama tidak dipakai.
 
-Status: implementasi Fase 1-4 selesai. Rencana lengkap ada di `tasks/plan.md`.
+Status: implementasi Fase 1-5 selesai (port Go 1:1 dari Rust; kode Rust telah dihapus). Rencana lengkap ada di `tasks/plan.md`.
 
 ## Arsitektur
 
 ```mermaid
 flowchart TD
-    D[Hardware: ESP32, RPi] <-->|MQTT 8883 TLS| B[rumqttd embedded<br/>dalam proses server]
-    S[Server Rust: hub] -->|LinkBuilder LinkRx/LinkTx| B
-    S --> DB[(SQLite WAL<br/>via sqlx)]
-    S --> M[Mailer lettre SMTP]
-    S --> APID[HTTP API Axum<br/>REST dan WebSocket]
+    D[Hardware: ESP32, RPi] <-->|MQTT 8883 TLS via reverse proxy / 1883 lokal| B[mochi-mqtt embedded<br/>dalam proses server]
+    S[Server Go: hub] -->|VoltaHook auth/ACL/publish| B
+    S --> DB[(SQLite WAL<br/>via database/sql)]
+    S --> M[Mailer net/smtp SMTP]
+    S --> APID[HTTP API net/http<br/>REST dan WebSocket]
     A[App baru<br/>browser atau mobile] <--> APID
 ```
 
@@ -33,29 +33,28 @@ Autentikasi device memakai token 32 karakter sebagai username sekaligus password
 
 ## Stack
 
-- **Tokio**: runtime, task per koneksi, worker antrean
-- **rumqttd**: broker MQTT terbenam, dihubungkan lewat `LinkBuilder`
-- **Axum**: HTTP REST, WebSocket, static
-- **sqlx + SQLite**: penyimpanan dengan mode WAL; adaptor Postgres menyusul lewat trait `Storage`
-- **lettre**: SMTP async, STARTTLS port 587 atau smtps port 465
-- **rustls-acme**: sertifikat Let's Encrypt otomatis
-- **serde, clap, tracing**: model, CLI, log
+- **Go + goroutine**: runtime, worker antrean, sweeper presence
+- **mochi-mqtt v2**: broker MQTT terbenam, dihubungkan lewat `VoltaHook`
+- **net/http + gorilla/websocket**: HTTP REST, WebSocket, static
+- **database/sql + mattn/go-sqlite3**: penyimpanan dengan mode WAL; adaptor Postgres menyusul lewat interface `Storage`
+- **net/smtp**: SMTP, STARTTLS port 587 atau SMTPS port 465
+- **flag, log, encoding/json, BurntSushi/toml, google/uuid**: CLI, log, model, config, id
 
 ## Guna memulai
 
 ```sh
-cargo build --release
-./target/release/volta --dataFolder ./data
+go build ./...
+go run ./cmd/volta --data-folder ./data
 ```
 
-Port bawaan: 8883 MQTT TLS, 1883 MQTT lokal, 9443 HTTPS app.
+Port bawaan: 8883 MQTT TLS (via reverse proxy), 1883 MQTT lokal, 9443 HTTPS app.
 
 ## Benchmark
 
 Ukur request per menit ke endpoint HTTP (default `/healthz`):
 
 ```sh
-cargo run --bin bench -- --host 127.0.0.1 --port 9443 --duration-secs 60 --concurrency 10
+go run ./cmd/bench --host 127.0.0.1 --port 9443 --duration-secs 60 --concurrency 10
 ```
 
 Contoh output: `total 120000 | gagal 0 | 60.1 dtk | 119800 req/menit (1997 req/detik)`.
@@ -83,12 +82,13 @@ Email register, reset password, dan event pin berjalan melalui antrean dengan re
 
 | Modul | Isi |
 |---|---|
-| `src/broker` | rumqttd terbenam, TLS, auth token, LWT |
-| `src/pins` | tap state, command bus, history |
-| `src/http` | REST auth, dashboard, device, pins, WS stream |
-| `src/mailer` | lettre transport, antrean, template |
-| `src/storage` | SQLite via sqlx, trait Storage |
-| `src/rule` | eventor, timer, webhook |
+| `broker` | mochi-mqtt terbenam, hook auth token, presence, status |
+| `topics` | parse topik, ACL publish/subscribe |
+| `pins` | tap state, command bus, history |
+| `http` | REST auth, dashboard, device, pins, WS stream |
+| `mailer` | net/smtp transport, antrean, template |
+| `storage` | SQLite WAL, interface Storage |
+| `rule` | eventor, timer |
 
 ## Status proyek
 

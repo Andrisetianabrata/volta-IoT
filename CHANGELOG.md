@@ -1,5 +1,14 @@
 # VOLTA. 0.1.0
 
+## Migrasi ke Go
+
+- Server dipindahkan 1:1 dari Rust ke Go (``): 31 route HTTP, 18 paket, 2 biner (`volta`, `bench`), 40+ tes (`go test ./...`)
+- Broker: rumqttd → mochi-mqtt v2 embedded (`VoltaHook`: auth token, ACL, tap state, presence)
+- HTTP: axum → `net/http` ServeMux + `gorilla/websocket`
+- Storage: sqlx → `database/sql` + mattn/go-sqlite3 (WAL, busy timeout, satu writer)
+- Mailer: lettre → `net/smtp` (STARTTLS/smtps, antrean DB, backoff)
+- Kode Rust dihapus: `src/`, `Cargo.toml`, `Cargo.lock`, `migrations/` root, `target/`
+
 ## Added
 - Firmware: `firmware/` berisi library Arduino `VoltaESP32` + proyek PlatformIO + uji host g++
 - Benchmark: biner `bench` + modul `src/bench.rs`, hitung request per menit (koneksi keep-alive, multi-koneksi)

@@ -3,11 +3,11 @@
 ## Build
 
 ```sh
-cargo build --release
-./target/release/volta --data-folder ./data
+go build ./...
+go run ./cmd/volta --data-folder ./data
 ```
 
-Port: 1883 MQTT lokal, 8883 MQTT TLS (via reverse proxy / rumqttd), 9443 HTTP app.
+Port: 1883 MQTT lokal, 8883 MQTT TLS (via reverse proxy), 9443 HTTP app.
 
 ## Config
 
@@ -47,4 +47,4 @@ Set `acme.enabled=true` bila domain publik siap. Uji staging dulu:
 - staging: `https://acme-staging-v02.api.letsencrypt.org/directory`
 - prod: `https://acme-v02.api.letsencrypt.org/directory`
 
-Fungsi `acme::directory_url()` diuji membedakan keduanya.
+Fungsi `acme.DirectoryURL()` diuji membedakan keduanya.

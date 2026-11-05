@@ -1,3 +1,0 @@
-[mqtt]
-local_port = 1883
-tls_port = 8883
