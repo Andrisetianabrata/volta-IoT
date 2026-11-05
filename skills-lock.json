@@ -6,6 +6,198 @@
       "sourceType": "github",
       "skillPath": "skills/taste-skill/SKILL.md",
       "computedHash": "23b3930015c478034b222e1a015da03a962c8ab48aee9fb4f3f69d977034feaa"
+    },
+    "anthropic-architect": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/anthropic-architect/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "3ecf8ca6644b323136a4331742e94313fa6939b480f97410e526929bae183261"
+    },
+    "anthropic-prompt-engineer": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/anthropic-prompt-engineer/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "e0d0eed645497baf7a261301064f8709d0d60f52a629df81fc59a1c2f037049b"
+    },
+    "apple-hig-designer": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/apple-hig-designer/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "fac1a12814a5de8657f579a4cdbb768251dfe12a3157c754c52b6e39ee3f5592"
+    },
+    "book-illustrator": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/book-illustrator/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "f2ca305365aa80bf0e166e1213fda4693b6376461ee89aa30477af543dcaf551"
+    },
+    "content-brief-generator": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/content-brief-generator/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "cb2dbcf81b925b318a08cc2128fcdfaaf732781292f93bc1aa8018ad3cf2da3a"
+    },
+    "design-brief-generator": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/design-brief-generator/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "589a486056081e3658ecb2091f5d64b2b9367e2c898ef3a40fb631f74d3a131e"
+    },
+    "engineer-expertise-extractor": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineer-expertise-extractor/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "d95f83f5d0154689f789c87e5c4d5aab8b295bbdef2134f0df1ea7d576143f9f"
+    },
+    "engineer-skill-creator": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineer-skill-creator/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "69d3c9ef5bf80eaa7c983fab6c333b351813b835bb56b4a4e89785148b66e654"
+    },
+    "frontend-designer": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-designer/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "8f99c5449f9c04eaf3b4af26bb94839c87042742cd2c03932410c93220a2e364"
+    },
+    "git-worktrees": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/git-worktrees/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "adf6bd26faf2d733e7891ed050d2ad3463e9c54c2ea2faca1f9c583c6ddb7e90"
+    },
+    "kids-book-writer": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/kids-book-writer/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "9703138af50fd6e4f2e3c410f78a2fcb293296d071ea4d78afaba408028b35f1"
+    },
+    "leetcode-teacher": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/leetcode-teacher/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "92578325e6fb68a3afec064ed50eeebe5f7e30067be387ab5f2eec5cf1b78780"
+    },
+    "llm-router": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/llm-router/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "6a122fe1c4a8c54c43870a21766e96690e0d04cae869fa2d9514c72370499163"
+    },
+    "math-teacher": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/math-teacher/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "c42980e39b7d7e670fb9eccfcdb9459c4e1f70096dcbfad354e1b42fb8d9ecdc"
+    },
+    "openai-prompt-engineer": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/openai-prompt-engineer/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "0f0ca865659aa6c9bfa6aebb6065e800a1eb2ca32cb673b5c0af2921965bb231"
+    },
+    "prd-generator": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/prd-generator/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "da79443751726b77c7e4e64deac7fe71caa340d20111ab7e6a077357d86aaddb"
+    },
+    "qa-test-planner": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/qa-test-planner/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "58d639507a6289b5c12cd9bc9d742f8cf54ab25c8a4434c77691a25df59a8937"
+    },
+    "query-expert": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/query-expert/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "b314bed7ceba73bf357b5fb499c91cec7b3f676038caafbd24a6af0a3a7bf745"
+    },
+    "reading-teacher": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/reading-teacher/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "d409faf3cfd065026319d9d1f4cb81132c852eaee78da8888de3515416250d6e"
+    },
+    "releasing-macos-apps": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/releasing-macos-apps/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "3c463b51f78b64c54cd2e901417fe2a3e814da2920c964dab928b04e491926ce"
+    },
+    "swift-concurrency": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/swift-concurrency/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "d1846983781a369edfeade5e155efe41b207a557a12d264b46e3ee14c134ffa8"
+    },
+    "swiftui-animation": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/swiftui-animation/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "7383b26f2458bab95470145b989731608d4ccff1c8c32db67b82e45789ecdc2e"
+    },
+    "technical-launch-planner": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/technical-launch-planner/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "d2a57eb6abc2f69624044a6c94c3cedb67fc933b7d0f0c1250fa29f700d5c145"
+    },
+    "trading-plan-generator": {
+      "source": "jamesrochabrun/skills",
+      "sourceType": "github",
+      "skillPath": "skills/trading-plan-generator/SKILL.md",
+      "ref": "main",
+      "commit": "2482c176372299c92af01f8414a67172f324e8db",
+      "computedHash": "0f7167cafcac5b03fe3f4710d5a19c2f9775a6998fb970388f0853ce319e275b"
     }
   }
 }
