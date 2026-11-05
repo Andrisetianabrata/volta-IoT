@@ -24,7 +24,7 @@
   --font-display: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono2: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; /* taste-skill-ignore: brand mono for telemetry numerals, DESIGN §3 */
 
-  --radius: 2px;
+  --radius: 8px;
 }
 
 [data-theme="light"] {
@@ -132,7 +132,7 @@
 }
 
 :root {
-  --radius: 2px;
+  --radius: 8px;
   --background: var(--color-ground);
   --foreground: var(--color-text);
   --card: var(--color-surface);

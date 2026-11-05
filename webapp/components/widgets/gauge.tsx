@@ -30,8 +30,8 @@ export function GaugeWidget({ widget, value }: WidgetProps) {
         </p>
       )}
       <div className="mt-3" role="img" aria-label={`Skala ${min} sampai ${max}`}>
-        <div className="h-[6px] w-full bg-[var(--color-raised)]" style={{ borderRadius: "var(--radius)" }}>
-          <div className="h-full bg-[var(--color-accent)]" style={{ width: `${Math.round(ratio * 100)}%`, borderRadius: "var(--radius)" }} />
+        <div className="h-[6px] w-full rounded-full bg-[var(--color-raised)]">
+          <div className="h-full rounded-full bg-[var(--color-accent)]" style={{ width: `${Math.round(ratio * 100)}%` }} />
         </div>
         <div className="tnum mt-1 flex justify-between font-mono2 text-[12px] text-[var(--color-faint)]">
           <span>{min}</span>

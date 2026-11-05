@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LoginForm, LogoutButton } from "../../components/login-form";
+import { Card } from "@/components/ui/card";
 import { sessionToken } from "../../lib/auth";
 
 export const metadata: Metadata = {
@@ -7,11 +8,12 @@ export const metadata: Metadata = {
   description: "Masuk atau daftar ke server VOLTA. lokal.",
 };
 
+/* Auth (DESIGN-APP.md §6): kartu tengah 560px radius 8px, tanpa motif landing. */
 export default async function LoginPage() {
   const sesi = await sessionToken();
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
-      <div className="reveal mx-auto w-full max-w-[560px] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 sm:p-8" style={{ borderRadius: "var(--radius)" }}>
+    <div className="mx-auto flex min-h-[calc(100svh-120px)] w-full max-w-6xl items-center justify-center px-4 py-14 sm:px-6">
+      <Card className="w-full max-w-[560px] p-6 sm:p-8">
         {sesi ? (
           <div>
             <p className="font-mono2 text-[13px] text-[var(--color-muted)]">sesi aktif</p>
@@ -35,7 +37,7 @@ export default async function LoginPage() {
             </div>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }

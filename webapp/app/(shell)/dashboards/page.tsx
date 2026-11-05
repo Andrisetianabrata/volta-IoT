@@ -1,5 +1,7 @@
 import { api } from "@/lib/api";
 import { PageHead } from "@/components/coming-soon";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { DashboardList } from "@/components/dashboard-list";
 
 export default async function DashboardsPage() {
@@ -8,16 +10,15 @@ export default async function DashboardsPage() {
     return (
       <div>
         <PageHead title="Dashboards" desc="Board berisi widget dari banyak device." />
-        <section aria-label="Daftar board tidak bisa dimuat" className="border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-          <p className="text-[15px] font-semibold text-[var(--color-text)]">Daftar board tidak bisa dimuat.</p>
+        <Card>
+          <p className="text-[17px] font-semibold text-[var(--color-text)]">Daftar board tidak bisa dimuat.</p>
           <p className="mt-2 text-[15px] text-[var(--color-muted)]">{r.error.message}</p>
-          <a
-            href="/dashboards"
-            className="mt-3 inline-flex min-h-[44px] items-center border border-[var(--color-border)] px-4 text-[15px] font-semibold text-[var(--color-text)] hover:border-[var(--color-accent)]"
-          >
-            Muat ulang
-          </a>
-        </section>
+          <Button asChild variant="outline" className="mt-4">
+            <a href="/dashboards">
+              Muat ulang
+            </a>
+          </Button>
+        </Card>
       </div>
     );
   }

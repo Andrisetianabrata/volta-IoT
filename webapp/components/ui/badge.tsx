@@ -2,7 +2,7 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"
 
-/* VOLTA badge: functional status pill only (dot + label). Two shapes: status dot or square tag. */
+/* VOLTA app badge (DESIGN-APP.md §5): functional status pill only. Tag radius 8px, dot stays round. */
 
 const badgeVariants = cva(
   "inline-flex shrink-0 items-center gap-2 text-[13px] font-medium whitespace-nowrap",

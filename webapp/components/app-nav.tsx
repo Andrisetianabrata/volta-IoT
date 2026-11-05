@@ -17,9 +17,8 @@ import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LogoutButton } from "@/components/login-form";
 
-/* Shell Open plane: sidebar berlabel 240px di desktop (tanpa topbar),
-   topbar 48px + lembar menu penuh di HP. Aktif = tint tembaga + ikon
-   tembaga penuh; tanpa garis, tanpa kaca (cukup beda tone). */
+/* Shell app (DESIGN-APP.md): sidebar 240px desktop dengan sekat border,
+   topbar 48px + lembar menu di HP. Aktif = tint aksen pill 8px. Tanpa motif landing. */
 
 const GROUPS = [
   {
@@ -117,7 +116,7 @@ export function AppNav() {
   useEffect(() => setOpen(false), [pathname]);
   return (
     <>
-      <aside className="hidden w-60 shrink-0 flex-col bg-[var(--color-surface)] md:flex">
+      <aside className="hidden w-60 shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] md:flex">
         <Link
           href="/dashboards"
           aria-label="VOLTA. ke daftar board"
@@ -136,7 +135,7 @@ export function AppNav() {
         <nav aria-label="Navigasi utama" className="flex-1 overflow-y-auto px-2 pb-4">
           <NavRows pathname={pathname} />
         </nav>
-        <div className="flex shrink-0 flex-col gap-2 p-3">
+        <div className="flex shrink-0 flex-col gap-2 border-t border-[var(--color-rule)] p-3">
           <ThemeToggle />
           <LogoutButton />
         </div>
@@ -172,7 +171,7 @@ export function AppNav() {
           <nav aria-label="Navigasi utama" className="flex-1 overflow-y-auto px-2 pb-4" data-lenis-prevent>
             <NavRows pathname={pathname} onNav={() => setOpen(false)} big />
           </nav>
-          <div className="flex shrink-0 flex-col gap-2 p-4">
+          <div className="flex shrink-0 flex-col gap-2 border-t border-[var(--color-rule)] p-4">
             <ThemeToggle />
             <LogoutButton />
           </div>

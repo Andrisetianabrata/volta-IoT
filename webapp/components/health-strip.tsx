@@ -1,8 +1,9 @@
 import { upstream } from "@/lib/auth";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
-/* Strip kesehatan (W3): deret KPI tanpa kotak dari GET /healthz (publik).
-   Label 13px di atas angka tabular 30px. Server mati = pesan eksplisit,
-   bukan angka basi. Sel "device online" menyusul W4. */
+/* Strip kesehatan (W3, DESIGN-APP.md): KPI di Card 8px dari GET /healthz.
+   Server mati = pesan eksplisit, bukan angka basi. */
 
 type Health = {
   broker?: { local_port?: number; tls_port?: number };
@@ -27,17 +28,18 @@ export async function HealthStrip() {
   if (!r.ok) {
     return (
       <section aria-label="Kesehatan server">
+        <Card>
         <p className="flex items-center gap-2 text-[17px] font-semibold text-[var(--color-text)]">
           <span aria-hidden="true" className="inline-block size-2.5 rounded-full bg-[#C4242A] dark:bg-[#E5566F]" />
           Server tidak terjangkau
         </p>
         <p className="mt-2 text-[15px] text-[var(--color-muted)]">{r.error.message}</p>
-        <a
-          href="/health"
-          className="mt-3 inline-flex min-h-[44px] items-center border border-[var(--color-border)] px-4 text-[15px] font-semibold text-[var(--color-text)] hover:border-[var(--color-accent)]"
-        >
-          Muat ulang
-        </a>
+        <Button asChild variant="outline" className="mt-4">
+          <a href="/health">
+            Muat ulang
+          </a>
+        </Button>
+        </Card>
       </section>
     );
   }
@@ -49,6 +51,7 @@ export async function HealthStrip() {
   const msgs = typeof h.stats?.msgs === "number" ? String(h.stats.msgs) : "-";
   return (
     <section aria-label="Kesehatan server">
+      <Card>
       <ul className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
         <Kpi label="Broker MQTT" value={String(broker)} sub={tls !== undefined ? `lokal · TLS ${tls}` : "lokal"} />
         <Kpi label="Basis data" value={h.db?.ok ? "OK" : "Mati"} />
@@ -59,6 +62,7 @@ export async function HealthStrip() {
       <p className="tnum mt-4 font-mono2 text-[12px] text-[var(--color-faint)]">
         Diperbarui {at} dari /healthz.
       </p>
+      </Card>
     </section>
   );
 }

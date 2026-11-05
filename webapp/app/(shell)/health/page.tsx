@@ -1,6 +1,7 @@
 import { sessionToken, upstream } from "@/lib/auth";
 import { HealthStrip } from "@/components/health-strip";
 import { PageHead } from "@/components/coming-soon";
+import { Card } from "@/components/ui/card";
 
 /* Halaman Health (W3): strip + angka admin dari /admin/stats.
    Semua angka dari respons; tanpa sesi valid tidak sampai sini (guard shell). */
@@ -32,7 +33,8 @@ export default async function HealthPage() {
     <div>
       <PageHead title="Health" desc="Kondisi server dari sumber yang sama dengan strip Monitor." />
       <HealthStrip />
-      <section aria-label="Statistik server" className="mt-4 border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+      <Card className="mt-4">
+      <section aria-label="Statistik server">
         {s ? (
           <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {rows.map(([k, v]) => (
@@ -48,6 +50,7 @@ export default async function HealthPage() {
           </p>
         )}
       </section>
+      </Card>
     </div>
   );
 }

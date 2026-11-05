@@ -4,7 +4,7 @@ import * as React from "react"
 import { cn } from "cn"
 import { Slider as SliderPrimitive } from "radix-ui"
 
-/* VOLTA slider: flat track, copper fill, square Bit thumb (18px). Hit area 44px via padding. */
+/* VOLTA app slider (DESIGN-APP.md §5): flat track, accent fill, round thumb 22px. Hit area 44px via padding. */
 
 function Slider({
   className,
@@ -31,17 +31,17 @@ function Slider({
     >
       <SliderPrimitive.Track
         data-slot="slider-track"
-        className="relative h-1 w-full grow overflow-hidden bg-[var(--color-control)]"
+        className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-[var(--color-control)]"
       >
         <SliderPrimitive.Range
           data-slot="slider-range"
-          className="absolute h-full bg-[var(--color-accent)]"
+          className="absolute h-full rounded-full bg-[var(--color-accent)]"
         />
       </SliderPrimitive.Track>
       <SliderPrimitive.Thumb
         data-slot="slider-thumb"
         aria-label={props["aria-label"] ?? props["aria-labelledby"] ?? "Nilai"}
-        className="block size-[22px] shrink-0 cursor-pointer border-2 border-[var(--color-accent)] bg-[var(--color-surface)] transition-colors outline-none hover:bg-[var(--color-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] disabled:pointer-events-none"
+        className="block size-[22px] shrink-0 cursor-pointer rounded-full border-2 border-[var(--color-accent)] bg-[var(--color-surface)] shadow-[0_1px_2px_rgb(0_0_0/0.12)] transition-colors outline-none hover:bg-[var(--color-accent-tint)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] disabled:pointer-events-none"
       />
     </SliderPrimitive.Root>
   )

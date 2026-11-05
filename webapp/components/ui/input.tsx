@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cn } from "cn"
 
-/* VOLTA input: flat surface, 1px control border, copper focus border. No ring glow. */
+/* VOLTA app input (DESIGN-APP.md §5): flat surface, radius 8px, 1px control border, accent focus. */
 
 function Input({ className, type, style, ...props }: React.ComponentProps<"input">) {
   return (

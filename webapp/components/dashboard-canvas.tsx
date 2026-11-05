@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Device, Widget } from "@/lib/api";
 import { sendPinAction } from "@/lib/actions";
+import { Card } from "@/components/ui/card";
 import { WidgetView } from "./widgets/registry";
 
 function cfgOf(config: string): { device?: string; w?: number } {
@@ -101,11 +102,13 @@ export function DashboardCanvas({ widgets, devices }: { widgets: Widget[]; devic
   const { values, live } = useBoardValues(deviceIds);
   if (widgets.length === 0) {
     return (
-      <section aria-label="Board kosong" className="border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
-        <p className="text-[15px] font-semibold text-[var(--color-text)]">Board ini belum punya widget.</p>
-        <p className="mt-2 text-[15px] text-[var(--color-muted)]">
+      <section aria-label="Board kosong">
+        <Card>
+        <p className="text-[17px] font-semibold text-[var(--color-text)]">Board ini belum punya widget.</p>
+        <p className="mt-2 max-w-xl text-[15px] text-[var(--color-muted)]">
           Tambah widget pertama lewat formulir di bawah. Hapus/ubah widget menyusul di editor W12.
         </p>
+        </Card>
       </section>
     );
   }

@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import type { Device } from "@/lib/api";
 import { createWidgetAction } from "@/lib/actions";
 import { WIDGET_MANIFEST } from "./widgets/registry";
@@ -11,8 +12,8 @@ import { WIDGET_MANIFEST } from "./widgets/registry";
 const field =
   "min-h-[44px] w-full min-w-0 border border-[var(--color-control)] bg-[var(--color-surface)] px-3 py-2 text-[15px] text-[var(--color-text)] outline-none placeholder:text-[var(--color-faint)] hover:border-[var(--color-muted)] focus:border-[var(--color-accent)]";
 
-/* Tambah widget ke board: pilih kind + device pemilik pin + pin.
-   Config (x/y/w/h) diisi default; geser manual menyusul W12. */
+/* Tambah widget ke board (DESIGN-APP.md §6): form dalam Card 8px,
+   select mengikuti radius Input. Config (x/y/w/h) diisi default; geser manual menyusul W12. */
 export function WidgetAddForm({ dashboardId, devices }: { dashboardId: string; devices: Device[] }) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState(createWidgetAction.bind(null, dashboardId), null);
@@ -32,10 +33,11 @@ export function WidgetAddForm({ dashboardId, devices }: { dashboardId: string; d
   const showMinMax = kind === "gauge" || kind === "slider";
   const showOnOff = kind === "button" || kind === "switch";
   return (
-    <form action={formAction} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <Card>
+    <form action={formAction} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <div>
         <label htmlFor="w-kind" className="font-mono2 text-[12px] text-[var(--color-muted)]">Jenis widget</label>
-        <select id="w-kind" name="kind" value={kind} onChange={(e) => setKind(e.target.value)} className={`${field} mt-1`}>
+        <select id="w-kind" name="kind" value={kind} onChange={(e) => setKind(e.target.value)} className={`${field} mt-1.5`} style={{ borderRadius: "var(--radius)" }}>
           {WIDGET_MANIFEST.map((m) => (
             <option key={m.kind} value={m.kind}>{m.title}</option>
           ))}
@@ -43,7 +45,7 @@ export function WidgetAddForm({ dashboardId, devices }: { dashboardId: string; d
       </div>
       <div>
         <label htmlFor="w-device" className="font-mono2 text-[12px] text-[var(--color-muted)]">Device pemilik pin</label>
-        <select id="w-device" name="device" defaultValue="" className={`${field} mt-1`} required>
+        <select id="w-device" name="device" defaultValue="" className={`${field} mt-1.5`} style={{ borderRadius: "var(--radius)" }} required>
           <option value="" disabled>Pilih device</option>
           {devices.map((d) => (
             <option key={d.id} value={d.id}>{d.name}</option>
@@ -89,7 +91,7 @@ export function WidgetAddForm({ dashboardId, devices }: { dashboardId: string; d
         </>
       ) : null}
       <div className="sm:col-span-2 lg:col-span-3">
-        <Button type="submit" disabled={pending} className="min-h-[44px]">
+        <Button type="submit" disabled={pending} className="min-h-[44px] active:translate-y-px">
           {pending ? "Menambah…" : "Tambah widget"}
         </Button>
         {state?.error ? (
@@ -97,5 +99,6 @@ export function WidgetAddForm({ dashboardId, devices }: { dashboardId: string; d
         ) : null}
       </div>
     </form>
+    </Card>
   );
 }

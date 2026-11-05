@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import type { Device, DeviceStatus } from "@/lib/api";
 import { PageHead } from "@/components/coming-soon";
+import { Card } from "@/components/ui/card";
 import { DeviceManager, type DeviceRow } from "@/components/device-manager";
 
 export default async function DevicesPage() {
@@ -9,7 +10,10 @@ export default async function DevicesPage() {
     return (
       <div>
         <PageHead title="Devices" desc="Daftar + tambah + hapus device, satu layar." />
-        <p className="mt-4 text-[15px] text-[var(--color-muted)]">Daftar device tidak bisa dimuat: {r.error.message}</p>
+        <Card>
+        <p className="text-[17px] font-semibold text-[var(--color-text)]">Daftar device tidak bisa dimuat.</p>
+        <p className="mt-2 text-[15px] text-[var(--color-muted)]">{r.error.message}</p>
+        </Card>
       </div>
     );
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
@@ -26,12 +27,16 @@ export function ThemeToggle() {
     <Button
       type="button"
       variant="outline"
+      size="icon"
       onClick={toggle}
       aria-pressed={theme === "dark"}
       aria-label={theme === "dark" ? "Ganti ke tema terang" : "Ganti ke tema gelap"}
-      className="min-h-[44px]"
     >
-      {theme === "dark" ? "Terang" : "Gelap"}
+      {theme === "dark" ? (
+        <Sun aria-hidden="true" className="size-5" />
+      ) : (
+        <Moon aria-hidden="true" className="size-5" />
+      )}
     </Button>
   );
 }

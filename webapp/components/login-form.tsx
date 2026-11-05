@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-/* Formulir masuk/daftar. Pesan error selalu teks, bukan warna saja. */
+/* Formulir masuk/daftar (DESIGN-APP.md §6). Tab sebagai segmented control
+   8px, error selalu teks + role=alert, bukan warna saja. */
 
 export function LogoutButton() {
   const router = useRouter();
@@ -67,14 +68,14 @@ export function LoginForm() {
 
   return (
     <div>
-      <div role="tablist" aria-label="Pilih masuk atau daftar" className="flex gap-2">
+      <div role="tablist" aria-label="Pilih masuk atau daftar" className="grid grid-cols-2 gap-1 border border-[var(--color-border)] bg-[var(--color-raised)] p-1" style={{ borderRadius: "var(--radius)" }}>
         {(["login", "register"] as const).map((m) => (
           <Button
             key={m}
             type="button"
             role="tab"
             aria-selected={mode === m}
-            variant={mode === m ? "default" : "outline"}
+            variant={mode === m ? "default" : "ghost"}
             onClick={() => {
               setMode(m);
               setError(null);
@@ -87,7 +88,7 @@ export function LoginForm() {
       </div>
       <form onSubmit={submit} className="mt-6 flex flex-col gap-4">
         <div>
-          <label htmlFor="login-email" className="font-mono2 text-[13px] text-[var(--color-muted)]">
+          <label htmlFor="login-email" className="font-mono2 text-[12px] text-[var(--color-muted)]">
             Alamat email
           </label>
           <Input
@@ -97,12 +98,12 @@ export function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             autoComplete={mode === "login" ? "email" : "off"}
             placeholder="nama@kantor.id"
-            className="mt-2 min-h-[44px]"
+            className="mt-1.5 min-h-[44px]"
             aria-invalid={error ? true : undefined}
           />
         </div>
         <div>
-          <label htmlFor="login-password" className="font-mono2 text-[13px] text-[var(--color-muted)]">
+          <label htmlFor="login-password" className="font-mono2 text-[12px] text-[var(--color-muted)]">
             Kata sandi
           </label>
           <Input
@@ -112,17 +113,17 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             autoComplete={mode === "login" ? "current-password" : "new-password"}
             placeholder="minimal 8 karakter"
-            className="mt-2 min-h-[44px]"
+            className="mt-1.5 min-h-[44px]"
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? "login-error" : undefined}
           />
         </div>
         {error && (
-          <p id="login-error" role="alert" className="text-[15px] text-[var(--color-text)]">
+          <p id="login-error" role="alert" className="border border-[#C4242A] bg-[var(--color-surface)] px-4 py-3 text-[15px] text-[var(--color-text)]" style={{ borderRadius: "var(--radius)" }}>
             {error}
           </p>
         )}
-        <Button type="submit" disabled={busy} className="min-h-[44px] bg-[var(--color-primary)] text-[var(--primary-foreground)] hover:bg-[var(--color-primary)] hover:opacity-85">
+        <Button type="submit" disabled={busy} className="min-h-[48px] active:translate-y-px">
           {busy ? "Tunggu…" : mode === "login" ? "Masuk" : "Daftar dan masuk"}
         </Button>
       </form>
