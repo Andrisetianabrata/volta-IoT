@@ -1,0 +1,36 @@
+{
+  "brand": "Volta",
+  "tagline": "Precision in Every Pulse.",
+  "brief": "Volta merancang sistem tertanam dan otomasi kustom — dari desain PCB sampai backend — yang harus bekerja 24/7 tanpa ambiguitas. Logo harus setegas firmwarenya: presisi, deterministik, tanpa ornamen.",
+  "adjectives": ["presisi", "deterministik", "industrial", "tanpa-ambiguitas"],
+  "criteria": "Berhasil jika: terbaca sebagai 1 dan 0 dalam sekali lihat, bertahan di 16 px dan satu warna, dan terasa seperti perangkat keras — bukan aplikasi.",
+  "industry": "software",
+  "mockups": ["readme", "terminal", "app-icon", "sticker", "signage", "business-card"],
+  "nav": ["Sistem", "Hardware", "Firmware", "Kontak"],
+  "brand_color": "#C07A24",
+  "greyscale": false,
+  "final": true,
+  "round": 3,
+  "designer": "OpenCode",
+  "concepts": [
+    {
+      "name": "Bit Pair",
+      "symbol": "volta-symbol.svg",
+      "lockup": "volta-horizontal.svg",
+      "stacked": "volta-stacked.svg",
+      "idea": "Satu dan nol, high dan low: otomasi tanpa ambiguitas dalam dua kotak.",
+      "rationale": [
+        "Dua kotak 96 piksel — solid dan ring — membaca sebagai HIGH/LOW, 1/0, deterministik biner",
+        "Wordmark Montserrat Black (outline vektor) plus bit-stop: titik kotak sebagai tanda khas",
+        "Bertahan di 16 px dan satu warna; versi small-cut membuka lubang ring untuk favicon",
+        "Berskala ke sistem: grid dua kotak menjadi pola enclosure, PCB silkscreen, dan ikon status"
+      ]
+    }
+  ],
+  "recommendation": "Bit Pair — bentuk paling jujur dari filosofi The PWM Pulse: biner, presisi, dan siap produksi dari favicon sampai papan nama bengkel.",
+  "next_steps": [
+    "Pakai volta-horizontal.svg untuk dokumen dan header web",
+    "Pakai volta-symbol.svg full-bleed untuk app icon dan silkscreen PCB",
+    "Daftarkan pemeriksaan merek sebelum produksi massal enclosure"
+  ]
+}

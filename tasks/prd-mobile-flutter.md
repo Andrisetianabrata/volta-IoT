@@ -123,6 +123,21 @@ tutup 4 lubang backend dalam satu paket.
 
 ### Epic A: Auth (P0)
 
+##### Story A0: Server dinamis di halaman login
+
+```
+As a pemilik device, I want to mengatur alamat server di halaman login, So that aplikasi bisa menunjuk ke server mana pun tanpa rebuild.
+```
+
+**Acceptance Criteria:**
+- [ ] Given halaman login, when dibuka tanpa server tersimpan, then tampil label jujur "SERVER BELUM DIATUR" (bukan alamat hardcoded); field server bisa diisi `host:port` atau URL penuh, mirip pengaturan custom server Blynk
+- [ ] Given server valid (`http(s)://host:port`), when disimpan, then dipakai sebagai base URL semua REST/WS; tersimpan lokal non-rahasia (`shared_preferences`); token sesi tetap di `secure storage`
+- [ ] Given server tidak valid/tidak terjangkau, when disimpan atau login, then error teks jelas ("server tidak terjangkau"), bukan diam
+- [ ] Given ganti server, when sesi lama ada, then sesi lama dihapus dan kembali ke login
+- [ ] Given server tersimpan, when halaman login dibuka/disimpan/diketuk, then indikator Online/Offline dari `GET /healthz` (teks + titik, bukan warna saja)
+
+**Priority:** P0 · **Dependencies:** tidak ada (fondasi M1)
+
 ##### Story A1: Daftar
 
 ```
@@ -142,7 +157,7 @@ As a pemilik device, I want to masuk dengan email+password, So that saya membuka
 ```
 
 **Acceptance Criteria:**
-- [ ] Given kredensial benar, when login via `POST /auth/login`, then 200 `{token}` disimpan di `secure storage` (bukan plaintext/shared-prefs biasa)
+- [ ] Given kredensial benar, when login via `POST /auth/login` ke base URL dinamis (A0), then 200 `{token}` disimpan di `secure storage` (bukan plaintext/shared-prefs biasa)
 - [ ] Given kredensial salah, when login, then 401 "kredensial salah"
 - [ ] Given token kedaluwarsa/invalid (401 pada request apa pun), when terdeteksi, then kembali ke login dengan pesan jelas
 - [ ] Given sesi aktif, when keluar, then token dihapus dan kembali ke login
@@ -162,14 +177,19 @@ As a teknisi, I want to melihat daftar device dengan status online/offline jujur
 - [ ] Given device offline, when tampil, then pill netral + teks, bukan angka pin basi
 - [ ] Given nol device, when buka, then empty state + ajakan provisioning
 
-##### Story B2: Provisioning (token sekali tampil)
+##### Story B2: Provisioning device di awal
+
+> Keputusan 2026-11-06 (revisi): provisioning-first. Buat device dulu
+> di layar Perangkat; board/dashboard memilih device belakangan.
+> Token sekali tampil + salin, tanpa perubahan backend.
 
 ```
-As a pemilik device, I want to tambah device dan melihat token sekali saja, So that firmware bisa di-flash dengan kredensial benar.
+As a pemilik device, I want to buat device dulu dan melihat token sekali saja, So that firmware bisa di-flash sebelum board disusun.
 ```
 
 **Acceptance Criteria:**
-- [ ] Given nama valid, when `POST /devices {name}`, then 201 `{device_id, token}`; token tampil sekali + tombol salin
+- [ ] Given layar Perangkat, when tambah device (`POST /devices {name}`), then 201 `{device_id, token}`; token tampil sekali + tombol salin
+- [ ] Given tiap device, when tampil, then nama + pill Online/Offline jujur + `updated_at` ("x lalu"); offline = pill netral, bukan angka basi
 - [ ] Given hapus, when konfirmasi dua tahap, then `DELETE /devices/:id` → `{ok:true}`
 - [ ] Given id panjang, when tampil di list, then 8 karakter + ellipsis
 
@@ -193,6 +213,8 @@ As a teknisi, I want to nilai pin update live tanpa reload, So that saya tahu ko
 
 **Acceptance Criteria:**
 - [ ] Given device terpilih, when buka WS `GET /devices/:id/stream?token=` (session token; token share untuk board publik), then tiap pesan `{"pin","value"}` update ≤ 1 dtk
+- [ ] Given nilai pin berubah di server, when tampil di board, then SEMUA kind display terupdate realtime tanpa refresh manual (sementara snapshot + tombol muat ulang; target M2)
+- [ ] Transport realtime diputuskan saat M2: WS eksisting, MQTT langsung (`mqtt_client`), atau gabungan. Syarat: ≤ 1 dtk, reconnect backoff, tanpa reload manual. Apa pun mekanismenya asal realtime.
 - [ ] Given WS putus, when terdeteksi, then indikator "Reconnecting" + backoff otomatis
 - [ ] Given pin non-numerik, when tampil, then apa adanya, tidak merusak layout
 - [ ] Given offline, when sweeper server menandai (≤ ~30 dtk), then pill berubah
@@ -398,11 +420,11 @@ Firmware ESP32 ──MQTT──▶ rumqttd (ada) ──▶ PinBus ─▶ WS fan-
 
 ### Stack
 
-- **Mobile:** Flutter 3.x (stable), Dart; Riverpod; `mqtt_client`, `web_socket_channel`, `fl_chart`/`custompainter` (dial), `flutter_map` (OSM ganti Leaflet), `flutter_inappwebview` (sandbox setara `sandbox="allow-scripts"` tanpa origin bersama), `flutter_secure_storage`.
+- **Mobile:** Flutter 3.x (stable), Dart; Riverpod; `mqtt_client`, `web_socket_channel`, `fl_chart`/`custompainter` (dial), `flutter_map` (OSM ganti Leaflet), `flutter_inappwebview` (sandbox setara `sandbox="allow-scripts"` tanpa origin bersama), `flutter_secure_storage` (token sesi; dukung Web eksperimental via WebCrypto), `shared_preferences` (alamat server non-rahasia, A0).
 - **Backend:** Rust (ada); migrasi `0003_rules_api.sql` (timers), `0004_webhook.sql` bila perlu kolom antrean; tidak ada ORM baru (trait `Storage` + `sqlx`, pola ada).
 - **Infrastruktur:** server tunggal yang sama; broker 1883/8883 (lihat `/healthz`).
 
-### Tabel API (jalan + baru)
+### Tabel API (jalan + baru; semua path relatif ke base URL dinamis A0)
 
 | Method & Path | Status | Body → Respons |
 |---|---|---|
@@ -427,6 +449,7 @@ Firmware ESP32 ──MQTT──▶ rumqttd (ada) ──▶ PinBus ─▶ WS fan-
 ### Keamanan
 
 - Sesi Bearer di semua rute user; share-token hanya untuk device dalam cakupan (pola `share_scope` + `check_device` dipakai ulang untuk rute BARU).
+- Alamat server (A0): validasi skema `http`/`https` + `host:port` di klien; tolak skema lain; tidak pernah log token; ganti server menghapus sesi lama.
 - Token sesi di `secure storage`; tidak di log; WS pakai `?token=` hanya untuk upgrade (risiko rendah yang didokumentasikan plan).
 - Webhook SSRF: batasi skema http/https, timeout 5 dtk, tanpa meneruskan kredensial server.
 - Batas laju login 10/mnt/IP (aturan baru, cegah serangan brute force).
@@ -452,7 +475,7 @@ Radius kartu 28; angka tabular; label mikro 11px kapital; Copper hanya untuk ene
 
 ### Alur utama
 
-1. Login → 2. Devices (pilih; tambah bila kosong) → 3. Monitor (pin live + grafik + perintah + strip kesehatan, pola W3–W6) → 4. Boards (daftar → board → tambah widget via form) → 5. Share (buat/salin/cabut) → 6. Settings (tema, akun, info server, sambung-ulang WS).
+1. Login (termasuk atur server dinamis A0) → 2. Perangkat (provisioning: buat device + token, status jujur, OTA) → 3. Boards (daftar; buat bila kosong; widget memilih device) → 4. Board (kanvas + tambah widget + pengaturan) → 5. Monitor (pin live + grafik + perintah + strip kesehatan, pola W3–W6) → 6. Share (buat/salin/cabut) → 7. Settings (tema, akun, info server, sambung-ulang WS).
 
 ### Aksesibilitas
 
@@ -466,7 +489,7 @@ Target: minggu relatif sejak kickoff (tanggal pasti di sign-off).
 
 | Fase | Hasil | Estimasi |
 |---|---|---|
-| M1 fondasi | Proyek Flutter, auth, `secure storage`, daftar device+status, tema Pebble | M1–M2 |
+| M1 fondasi | Proyek Flutter, auth + server dinamis (A0), `secure storage`, daftar device+status, tema Pebble | M1–M2 |
 | M2 inti | WS live + sambung ulang, perintah, history 1H/24H, 3 renderer fondasi (gauge, button, slider) | M2–M4 |
 | M3 penuh | 22 kind sisa + sandbox HTML + tambah via form + share + OTA | M4–M7 |
 | M4 backend | CRUD rules, scheduler, engine webhook+tes, forward, `GET /time`, patch firmware RTC | M5–M7 (paralel, engineer Rust) |
@@ -529,4 +552,4 @@ Target: minggu relatif sejak kickoff (tanggal pasti di sign-off).
 
 - **Referensi:** `tasks/plan-webapp.md` (W1–W14), `tasks/todo-webapp.md`, `webapp/lib/widget-registry.ts`, galeri beku `/widgets`, kanvas beku `/dad`, `src/seed.rs` (data "Contoh").
 - **Glosarium:** kind = tipe widget; pin = string bebas; config = JSON ≤ 64 KB; board = dashboard; cakupan share = device dari `config.device`.
-- **Change Log:** 1.0 (2026-11-05): draf awal hasil penggalian kebutuhan (Android+iOS, via server, backend satu paket, auth dasar, 25 kinds); 1.1: editor sumber HTML ditegaskan, A1 dipecah dua, bahasa Indonesia dirapikan di §8–§14.
+- **Change Log:** 1.0 (2026-11-05): draf awal hasil penggalian kebutuhan (Android+iOS, via server, backend satu paket, auth dasar, 25 kinds); 1.1: editor sumber HTML ditegaskan, A1 dipecah dua, bahasa Indonesia dirapikan di §8–§14; 1.2 (2026-11-06): server dinamis di halaman login (Story A0, mirip custom server Blynk), token tetap di secure storage, alamat di shared_preferences; 1.3 (2026-11-06): boards-first ala Blynk Legacy (B2 digabung buat board+device, tanpa layar provisioning); 1.4 (2026-11-06): syarat realtime board tanpa refresh manual, transport diputuskan di M2 (WS/MQTT/gabungan); 1.5 (2026-11-06): provisioning-first (B2 kembali layar Perangkat di awal, board memilih device belakangan).

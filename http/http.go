@@ -127,6 +127,9 @@ func resolveActor(s *AppState, r *http.Request) (actor, error) {
 		return actor{}, Unauthorized("invalid session")
 	}
 	if t := r.URL.Query().Get("token"); t != "" {
+		if u, err := auth.UserIDForSession(s.DB, t); err == nil {
+			return actor{kind: actorUser, user: u}, nil
+		}
 		if scope, err := shareScope(s.DB, t); err == nil {
 			return actor{kind: actorShare, scope: scope}, nil
 		}
@@ -500,9 +503,9 @@ func handleStream(s *AppState, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer conn.Close()
-	_ = conn.WriteMessage(websocket.TextMessage, []byte("connected "+id))
 	ch, unsub := s.Bus.Subscribe()
 	defer unsub()
+	_ = conn.WriteMessage(websocket.TextMessage, []byte("connected "+id))
 	for ev := range ch {
 		if ev.DeviceID != id {
 			continue

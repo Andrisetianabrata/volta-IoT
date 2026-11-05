@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 874 256" width="874" height="256" role="img" aria-labelledby="t">
+  <title id="t">Volta horizontal lockup (Montserrat) — volta-horizontal-reversed.svg</title>
+  <g id="symbol" transform="translate(5.48,9.48) scale(0.9259)">
+    <path fill="#FFFFFF" d="M20 80 H116 V176 H20 Z"/>
+  <path fill="#FFFFFF" fill-rule="evenodd" d="M140 80 H236 V176 H140 Z M164 104 H212 V152 H164 Z"/>
+  </g>
+  <g id="wordmark" transform="translate(264.00,76.00) scale(0.7143)">
+    <g id="wordmark" fill="#FFFFFF">     <path transform="translate(8.00,140.00) scale(0.2000,-0.2000)" d="M277 0 -19 700H235L401 292L573 700H805L509 0Z"/>     <path transform="translate(162.60,140.00) scale(0.2000,-0.2000)" d="M425 -16Q339 -16 266.5 11.0Q194 38 141.0 87.5Q88 137 58.5 204.0Q29 271 29 350Q29 430 58.5 496.5Q88 563 141.0 612.5Q194 662 266.5 689.0Q339 716 424 716Q510 716 582.0 689.0Q654 662 707.0 612.5Q760 563 789.5 496.5Q819 430 819 350Q819 271 789.5 204.0Q760 137 707.0 87.5Q654 38 582.0 11.0Q510 -16 425 -16ZM424 175Q457 175 485.5 187.0Q514 199 535.5 221.5Q557 244 569.0 276.5Q581 309 581 350Q581 391 569.0 423.5Q557 456 535.5 478.5Q514 501 485.5 513.0Q457 525 424 525Q391 525 362.5 513.0Q334 501 312.5 478.5Q291 456 279.0 423.5Q267 391 267 350Q267 309 279.0 276.5Q291 244 312.5 221.5Q334 199 362.5 187.0Q391 175 424 175Z"/>     <path transform="translate(334.60,140.00) scale(0.2000,-0.2000)" d="M57 0V700H293V183H609V0Z"/>     <path transform="translate(445.40,140.00) scale(0.2000,-0.2000)" d="M209 0V517H4V700H650V517H445V0Z"/>     <path transform="translate(571.60,140.00) scale(0.2000,-0.2000)" d="M-19 0 287 700H519L825 0H581L355 588H447L221 0ZM163 122 223 292H545L605 122Z"/>     <path d="M772.8 100 H812.8 V140 H772.8 Z"/>   </g>
+  </g>
+</svg>
