@@ -13,3 +13,8 @@ mobile/build/
 mobile/.dart_tool/
 mobile/android/.gradle/
 mobile/android/app/build/
+# Biner server hasil build lokal, jangan commit.
+/volta.exe
+/volta
+/bench.exe
+/bench

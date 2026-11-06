@@ -6,6 +6,7 @@ import '../core/session.dart';
 import '../core/time_ago.dart';
 import 'board_screen.dart';
 import 'devices_screen.dart';
+import 'gallery_screen.dart';
 import 'login_screen.dart';
 import '../widgets/pebble_nav.dart';
 
@@ -184,6 +185,15 @@ class _BoardsScreenState extends State<BoardsScreen> {
       appBar: AppBar(
         title: const Text('Boards'),
         actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const GalleryScreen()),
+              );
+            },
+            icon: const Icon(Icons.widgets_outlined),
+            tooltip: 'Galeri widget',
+          ),
           IconButton(
             onPressed: _logout,
             icon: const Icon(Icons.logout),
